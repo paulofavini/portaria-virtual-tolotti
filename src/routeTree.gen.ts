@@ -9,11 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as OcorrenciasRouteImport } from './routes/ocorrencias'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as AvisosRouteImport } from './routes/avisos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OcorrenciasNovoRouteImport } from './routes/ocorrencias.novo'
 
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OcorrenciasRoute = OcorrenciasRouteImport.update({
+  id: '/ocorrencias',
+  path: '/ocorrencias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -34,18 +47,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OcorrenciasNovoRoute = OcorrenciasNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => OcorrenciasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +77,38 @@ export interface FileRoutesById {
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/avisos' | '/condominios' | '/login'
+  fullPaths:
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
+    | '/ocorrencias/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avisos' | '/condominios' | '/login'
-  id: '__root__' | '/' | '/avisos' | '/condominios' | '/login'
+  to:
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
+    | '/ocorrencias/novo'
+  id:
+    | '__root__'
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
+    | '/ocorrencias/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +116,26 @@ export interface RootRouteChildren {
   AvisosRoute: typeof AvisosRoute
   CondominiosRoute: typeof CondominiosRoute
   LoginRoute: typeof LoginRoute
+  OcorrenciasRoute: typeof OcorrenciasRouteWithChildren
+  UsuariosRoute: typeof UsuariosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ocorrencias': {
+      id: '/ocorrencias'
+      path: '/ocorrencias'
+      fullPath: '/ocorrencias'
+      preLoaderRoute: typeof OcorrenciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -99,14 +164,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ocorrencias/novo': {
+      id: '/ocorrencias/novo'
+      path: '/novo'
+      fullPath: '/ocorrencias/novo'
+      preLoaderRoute: typeof OcorrenciasNovoRouteImport
+      parentRoute: typeof OcorrenciasRoute
+    }
   }
 }
+
+interface OcorrenciasRouteChildren {
+  OcorrenciasNovoRoute: typeof OcorrenciasNovoRoute
+}
+
+const OcorrenciasRouteChildren: OcorrenciasRouteChildren = {
+  OcorrenciasNovoRoute: OcorrenciasNovoRoute,
+}
+
+const OcorrenciasRouteWithChildren = OcorrenciasRoute._addFileChildren(
+  OcorrenciasRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AvisosRoute: AvisosRoute,
   CondominiosRoute: CondominiosRoute,
   LoginRoute: LoginRoute,
+  OcorrenciasRoute: OcorrenciasRouteWithChildren,
+  UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

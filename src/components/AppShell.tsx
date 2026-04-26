@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -15,10 +15,13 @@ import {
   X,
   Shield,
   Plus,
+  Search,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,7 +53,8 @@ const QUICK_ACTIONS = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const { user, roles, signOut } = useAuth();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const { user, roles, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,6 +64,17 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   const initials = (user?.email ?? "U").slice(0, 2).toUpperCase();
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,6 +109,20 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              to="/usuarios"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                location.pathname === "/usuarios"
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                  : "text-sidebar-foreground/85 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <UserCog className="h-4 w-4" />
+              Usuários
+            </Link>
+          )}
         </nav>
         <div className="px-4 py-3 border-t border-sidebar-border text-xs text-sidebar-foreground/60">
           {roles.length > 0 ? `Perfil: ${roles.join(", ")}` : "Sem perfil"}
@@ -135,6 +164,21 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </Link>
                 );
               })}
+              {isAdmin && (
+                <Link
+                  to="/usuarios"
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium",
+                    location.pathname === "/usuarios"
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      : "text-sidebar-foreground/85 hover:bg-sidebar-accent",
+                  )}
+                >
+                  <UserCog className="h-4 w-4" />
+                  Usuários
+                </Link>
+              )}
             </nav>
           </aside>
         </div>
@@ -151,7 +195,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="font-semibold text-foreground hidden sm:block">
             {NAV.find((n) => n.to === location.pathname)?.label ?? "Portaria Virtual"}
           </div>
-          <div className="flex-1" />
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="flex-1 max-w-md mx-2 flex items-center gap-2 h-9 px-3 rounded-lg border border-border bg-muted/40 hover:bg-muted text-sm text-muted-foreground transition-colors"
+          >
+            <Search className="h-4 w-4" />
+            <span className="truncate">Buscar condomínio, unidade ou morador...</span>
+            <span className="ml-auto hidden md:inline text-[10px] px-1.5 py-0.5 rounded border border-border bg-background">
+              ⌘K
+            </span>
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="h-9 w-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold hover:opacity-90">
@@ -161,6 +214,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {isAdmin && (
+                <DropdownMenuItem onClick={() => navigate({ to: "/usuarios" })}>
+                  <UserCog className="h-4 w-4 mr-2" /> Gestão de usuários
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" /> Sair
               </DropdownMenuItem>
@@ -196,6 +254,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
   );
 }
