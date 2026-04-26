@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as OcorrenciasRouteImport } from './routes/ocorrencias'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as AvisosRouteImport } from './routes/avisos'
@@ -18,6 +19,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OcorrenciasRoute = OcorrenciasRouteImport.update({
+  id: '/ocorrencias',
+  path: '/ocorrencias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRoute
   '/usuarios': typeof UsuariosRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRoute
   '/usuarios': typeof UsuariosRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,28 @@ export interface FileRoutesById {
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
+  '/ocorrencias': typeof OcorrenciasRoute
   '/usuarios': typeof UsuariosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/avisos' | '/condominios' | '/login' | '/usuarios'
+  fullPaths:
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avisos' | '/condominios' | '/login' | '/usuarios'
-  id: '__root__' | '/' | '/avisos' | '/condominios' | '/login' | '/usuarios'
+  to: '/' | '/avisos' | '/condominios' | '/login' | '/ocorrencias' | '/usuarios'
+  id:
+    | '__root__'
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +98,7 @@ export interface RootRouteChildren {
   AvisosRoute: typeof AvisosRoute
   CondominiosRoute: typeof CondominiosRoute
   LoginRoute: typeof LoginRoute
+  OcorrenciasRoute: typeof OcorrenciasRoute
   UsuariosRoute: typeof UsuariosRoute
 }
 
@@ -86,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ocorrencias': {
+      id: '/ocorrencias'
+      path: '/ocorrencias'
+      fullPath: '/ocorrencias'
+      preLoaderRoute: typeof OcorrenciasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -124,8 +154,18 @@ const rootRouteChildren: RootRouteChildren = {
   AvisosRoute: AvisosRoute,
   CondominiosRoute: CondominiosRoute,
   LoginRoute: LoginRoute,
+  OcorrenciasRoute: OcorrenciasRoute,
   UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
