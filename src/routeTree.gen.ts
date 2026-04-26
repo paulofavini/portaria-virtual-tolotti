@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as AvisosRouteImport } from './routes/avisos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OcorrenciasNovoRouteImport } from './routes/ocorrencias.novo'
 
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
@@ -46,22 +47,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OcorrenciasNovoRoute = OcorrenciasNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => OcorrenciasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
-  '/ocorrencias': typeof OcorrenciasRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
   '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
-  '/ocorrencias': typeof OcorrenciasRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
   '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +77,9 @@ export interface FileRoutesById {
   '/avisos': typeof AvisosRoute
   '/condominios': typeof CondominiosRoute
   '/login': typeof LoginRoute
-  '/ocorrencias': typeof OcorrenciasRoute
+  '/ocorrencias': typeof OcorrenciasRouteWithChildren
   '/usuarios': typeof UsuariosRoute
+  '/ocorrencias/novo': typeof OcorrenciasNovoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -81,8 +90,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/ocorrencias'
     | '/usuarios'
+    | '/ocorrencias/novo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/avisos' | '/condominios' | '/login' | '/ocorrencias' | '/usuarios'
+  to:
+    | '/'
+    | '/avisos'
+    | '/condominios'
+    | '/login'
+    | '/ocorrencias'
+    | '/usuarios'
+    | '/ocorrencias/novo'
   id:
     | '__root__'
     | '/'
@@ -91,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/ocorrencias'
     | '/usuarios'
+    | '/ocorrencias/novo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -98,7 +116,7 @@ export interface RootRouteChildren {
   AvisosRoute: typeof AvisosRoute
   CondominiosRoute: typeof CondominiosRoute
   LoginRoute: typeof LoginRoute
-  OcorrenciasRoute: typeof OcorrenciasRoute
+  OcorrenciasRoute: typeof OcorrenciasRouteWithChildren
   UsuariosRoute: typeof UsuariosRoute
 }
 
@@ -146,17 +164,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ocorrencias/novo': {
+      id: '/ocorrencias/novo'
+      path: '/novo'
+      fullPath: '/ocorrencias/novo'
+      preLoaderRoute: typeof OcorrenciasNovoRouteImport
+      parentRoute: typeof OcorrenciasRoute
+    }
   }
 }
+
+interface OcorrenciasRouteChildren {
+  OcorrenciasNovoRoute: typeof OcorrenciasNovoRoute
+}
+
+const OcorrenciasRouteChildren: OcorrenciasRouteChildren = {
+  OcorrenciasNovoRoute: OcorrenciasNovoRoute,
+}
+
+const OcorrenciasRouteWithChildren = OcorrenciasRoute._addFileChildren(
+  OcorrenciasRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AvisosRoute: AvisosRoute,
   CondominiosRoute: CondominiosRoute,
   LoginRoute: LoginRoute,
-  OcorrenciasRoute: OcorrenciasRoute,
+  OcorrenciasRoute: OcorrenciasRouteWithChildren,
   UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
