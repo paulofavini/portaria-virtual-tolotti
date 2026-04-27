@@ -20,6 +20,7 @@ import {
   isFuture,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { OrientacoesMural } from "@/components/OrientacoesMural";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -206,6 +207,9 @@ function Dashboard() {
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Visão geral do dia — {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
       </div>
+
+      {/* Mural de orientações aos operadores */}
+      <OrientacoesMural />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
