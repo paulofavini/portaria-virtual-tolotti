@@ -25,4 +25,7 @@ function MudancasLayout() {
 
 export const Route = createFileRoute("/mudancas")({
   component: MudancasLayout,
+  validateSearch: (search: Record<string, unknown>) => ({
+    periodo: typeof search.periodo === "string" ? (search.periodo as string) : undefined,
+  }),
 });
