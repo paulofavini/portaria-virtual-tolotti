@@ -191,7 +191,6 @@ function Dashboard() {
   const avisosHoje = avisosAtivos.filter((a) => isToday(a.data));
 
   const eventosHoje = (eventos.data ?? []).filter((e) => isToday(e.data));
-  const eventosFuturos = (eventos.data ?? []).filter((e) => isFuture(e.data)).slice(0, 5);
 
   const mudancasHoje = (mudancas.data ?? [])
     .filter((m) => isToday(m.data))
@@ -200,30 +199,8 @@ function Dashboard() {
       const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
       return tb - ta;
     });
-  const mudancasFuturas = (mudancas.data ?? []).filter((m) => isFuture(m.data)).slice(0, 5);
-
-  // Últimas 5 mudanças anteriores ao dia de hoje (data < início do dia atual).
-  const mudancasPassadas = (mudancas.data ?? [])
-    .filter((m) => !isToday(m.data) && !isFuture(m.data))
-    .sort((a, b) => {
-      // Ordena por data DESC; em caso de empate, usa created_at DESC.
-      const da = a.data ?? "";
-      const db = b.data ?? "";
-      if (da !== db) return db.localeCompare(da);
-      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return tb - ta;
-    })
-    .slice(0, 5);
 
   const ocorrenciasHoje = (ocorrencias.data ?? []).filter((o) => isToday(o.data_hora));
-  // Últimas 3 ocorrências cadastradas (sem filtro de data) — ordenadas por created_at DESC.
-  const ocorrenciasRecentes = [...(ocorrencias.data ?? [])]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-    )
-    .slice(0, 3);
 
   const chamadosPendentes = (chamados.data ?? []).filter((c) => c.status === "pendente");
   const chamadosAndamento = (chamados.data ?? []).filter((c) => c.status === "em_andamento");
