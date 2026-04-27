@@ -1,23 +1,14 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Users, Building2, Home, PartyPopper, Calendar } from "lucide-react";
+import { Users, Building2, Home, PartyPopper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useEventos } from "@/lib/queries";
 import { ConvidadosDialog, type EventoRow } from "@/components/EventosManager";
 import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
-
-function fmtDataCard(iso?: string | null) {
-  if (!iso) return "";
-  // datas de evento vêm como "YYYY-MM-DD" (date) — força local
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  const d = m
-    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
-    : new Date(iso);
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-}
+import { DateBadge } from "@/components/DateBadge";
 
 const MAX_PROXIMOS = 4;
 
@@ -115,14 +106,8 @@ export function ConvidadosHoje() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  {/* Linha 1 — Data do evento (destaque leve) */}
-                  <div className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    <span>
-                      {fmtDataCard(e.data)}
-                      {e.horario ? ` · ${String(e.horario).slice(0, 5)}` : ""}
-                    </span>
-                  </div>
+                  {/* Linha 1 — Data do evento (destaque forte) */}
+                  <DateBadge iso={e.data} horario={e.horario} />
 
                   {/* Linha 2 — Condomínio (maior destaque) */}
                   <div className="flex items-start gap-2">
