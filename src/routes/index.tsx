@@ -235,14 +235,14 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Visão geral do dia — {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</p>
       </div>
 
-      {/* Mural de orientações aos operadores */}
-      <OrientacoesMural />
-
-      {/* Convidados dos eventos do dia — controle de presença rápido */}
+      {/* 1) Convidados dos eventos do dia — controle de presença rápido */}
       <ConvidadosHoje />
 
-      {/* Solicitações priorizadas para o plantão */}
+      {/* 2) Solicitações priorizadas para o plantão */}
       <SolicitacoesResumo />
+
+      {/* 3) Mural de orientações aos operadores (colapsável) */}
+      <OrientacoesMural />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

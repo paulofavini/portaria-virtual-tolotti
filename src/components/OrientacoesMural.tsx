@@ -10,6 +10,8 @@ import {
   Plus,
   Pencil,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -107,6 +109,7 @@ export function OrientacoesMural() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OrientacaoRow | null>(null);
   const [deleting, setDeleting] = useState<OrientacaoRow | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   const orientacoes = useQuery({
     queryKey: ["orientacoes"],
@@ -161,6 +164,9 @@ export function OrientacoesMural() {
   });
 
   const items = orientacoes.data ?? [];
+  const PREVIEW_COUNT = 2;
+  const visibleItems = expanded ? items : items.slice(0, PREVIEW_COUNT);
+  const hiddenCount = Math.max(0, items.length - PREVIEW_COUNT);
 
   return (
     <div
@@ -192,7 +198,7 @@ export function OrientacoesMural() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {items.map((o) => {
+          {visibleItems.map((o) => {
             const s = tipoStyles(o.tipo);
             const isOwner = !!user && o.created_by === user.id;
             const canEdit = isAdmin || (isOperador && isOwner);
@@ -277,6 +283,26 @@ export function OrientacoesMural() {
               </article>
             );
           })}
+        </div>
+      )}
+
+      {items.length > PREVIEW_COUNT && (
+        <div className="mt-3 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? (
+              <>
+                <ChevronUp className="h-4 w-4 mr-1" /> Ocultar
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 mr-1" /> Ver todas ({hiddenCount} a mais)
+              </>
+            )}
+          </Button>
         </div>
       )}
 
