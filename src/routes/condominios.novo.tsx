@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/condominios/novo")({
   component: NovoCondominioPage,
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/condominios/novo")({
 function NovoCondominioPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { isAdmin, loading: authLoading } = useAuth();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     nome: "",
@@ -27,6 +29,21 @@ function NovoCondominioPage() {
     zelador_nome: "",
     zelador_telefone: "",
   });
+
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      toast.error("Acesso restrito a administradores");
+      navigate({ to: "/condominios" });
+    }
+  }, [authLoading, isAdmin, navigate]);
+
+  if (authLoading || !isAdmin) {
+    return (
+      <div className="py-12 flex justify-center">
+        <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   const update = (k: keyof typeof form, v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
