@@ -16,7 +16,6 @@ import {
   useOcorrencias,
   useChamados,
   isToday,
-  isFuture,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { OrientacoesMural } from "@/components/OrientacoesMural";
