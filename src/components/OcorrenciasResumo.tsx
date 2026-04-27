@@ -5,27 +5,20 @@ import {
   Building2,
   Home,
   Calendar,
-  UserCheck,
-  Package,
-  Wrench,
   Clock,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOcorrencias } from "@/lib/queries";
-import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
 
 const MAX = 4;
 
-const TIPO_META: Record<
-  string,
-  { label: string; Icon: React.ComponentType<{ className?: string }>; tone: string }
-> = {
-  visitante: { label: "Visitante", Icon: UserCheck, tone: "bg-primary/10 text-primary" },
-  entrega: { label: "Entrega", Icon: Package, tone: "bg-success/15 text-success" },
-  prestador: { label: "Prestador", Icon: Wrench, tone: "bg-warning/15 text-warning-foreground" },
-  geral: { label: "Geral", Icon: AlertTriangle, tone: "bg-destructive/10 text-destructive" },
+const TIPO_LABEL: Record<string, string> = {
+  visitante: "Visitante",
+  entrega: "Entrega",
+  prestador: "Prestador",
+  geral: "Geral",
 };
 
 function fmtDateTime(iso?: string | null) {
@@ -87,11 +80,7 @@ export function OcorrenciasResumo() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {items.map((o) => {
-              const meta = TIPO_META[o.tipo] ?? {
-                label: o.tipo,
-                Icon: AlertTriangle,
-                tone: "bg-muted text-foreground",
-              };
+              const tipoLabel = TIPO_LABEL[o.tipo] ?? o.tipo;
               const status = (o.status ?? "em_andamento") as "em_andamento" | "finalizada";
               return (
                 <div
@@ -99,43 +88,16 @@ export function OcorrenciasResumo() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-warning/30 bg-background hover:border-warning transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
+                  {/* 1) Condomínio em destaque */}
                   <div className="flex items-start gap-2">
-                    <div className={cn("h-7 w-7 rounded-md flex items-center justify-center shrink-0", meta.tone)}>
-                      <meta.Icon className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-                        {meta.label}
-                        {o.nome_pessoa ? ` — ${o.nome_pessoa}` : ""}
-                      </h4>
-                    </div>
+                    <Building2 className="h-4 w-4 text-warning-foreground shrink-0 mt-0.5" />
+                    <h4 className="text-sm font-bold text-foreground leading-tight line-clamp-2">
+                      {o.condominios?.nome ?? "Sem condomínio"}
+                    </h4>
                   </div>
 
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {status === "em_andamento" ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-warning/20 text-warning-foreground">
-                        <Clock className="h-3 w-3" /> em andamento
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-success/20 text-success">
-                        <CheckCircle2 className="h-3 w-3" /> finalizada
-                      </span>
-                    )}
-                  </div>
-
-                  {o.descricao && (
-                    <p className="text-xs text-foreground/80 line-clamp-3 whitespace-pre-wrap">
-                      {o.descricao}
-                    </p>
-                  )}
-
-                  <div className="space-y-1 text-[11px] text-muted-foreground mt-auto pt-2 border-t border-border">
-                    {o.condominios?.nome && (
-                      <div className="inline-flex items-center gap-1.5 w-full">
-                        <Building2 className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{o.condominios.nome}</span>
-                      </div>
-                    )}
+                  {/* 2) Unidade - Bloco | 3) Data/hora */}
+                  <div className="space-y-1 text-xs text-muted-foreground">
                     {o.unidades && (
                       <div className="inline-flex items-center gap-1.5 w-full">
                         <Home className="h-3 w-3 shrink-0" />
@@ -146,6 +108,28 @@ export function OcorrenciasResumo() {
                       <Calendar className="h-3 w-3 shrink-0" />
                       <span className="truncate">{fmtDateTime(o.data_hora)}</span>
                     </div>
+                  </div>
+
+                  {/* 4) Status */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {status === "em_andamento" ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase px-2 py-1 rounded bg-warning text-warning-foreground">
+                        <Clock className="h-3 w-3" /> em andamento
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase px-2 py-1 rounded bg-success text-success-foreground">
+                        <CheckCircle2 className="h-3 w-3" /> finalizada
+                      </span>
+                    )}
+                  </div>
+
+                  {/* 5) Breve relato (tipo embutido) */}
+                  <div className="mt-auto pt-2 border-t border-border">
+                    <p className="text-xs text-foreground/80 line-clamp-3 whitespace-pre-wrap">
+                      <span className="font-semibold text-foreground">{tipoLabel}</span>
+                      {o.nome_pessoa ? ` — ${o.nome_pessoa}` : ""}
+                      {o.descricao ? `: ${o.descricao}` : ""}
+                    </p>
                   </div>
                 </div>
               );

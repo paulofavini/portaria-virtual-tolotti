@@ -1,9 +1,8 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ClipboardList, ChevronRight, CircleDollarSign, Clock, Building2, Home } from "lucide-react";
+import { ClipboardList, ChevronRight, CircleDollarSign, Calendar, Building2, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
 
@@ -129,22 +128,16 @@ export function SolicitacoesResumo() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
+                  {/* 1) Condomínio em destaque */}
                   <div className="flex items-start gap-2">
-                    <ClipboardList className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-                        {TIPO_LABEL[s.tipo]} — {s.descricao}
-                      </h4>
-                    </div>
+                    <Building2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <h4 className="text-sm font-bold text-foreground leading-tight line-clamp-2">
+                      {s.condominios?.nome ?? "Sem condomínio"}
+                    </h4>
                   </div>
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground">
-                    {s.condominios?.nome && (
-                      <div className="inline-flex items-center gap-1.5 w-full">
-                        <Building2 className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{s.condominios.nome}</span>
-                      </div>
-                    )}
+                  {/* 2) Unidade - Bloco | 3) Data */}
+                  <div className="space-y-1 text-xs text-muted-foreground">
                     {s.unidades && (
                       <div className="inline-flex items-center gap-1.5 w-full">
                         <Home className="h-3 w-3 shrink-0" />
@@ -154,12 +147,17 @@ export function SolicitacoesResumo() {
                       </div>
                     )}
                     <div className="inline-flex items-center gap-1.5 w-full">
-                      <Clock className="h-3 w-3 shrink-0" />
+                      <Calendar className="h-3 w-3 shrink-0" />
                       <span className="truncate">{fmtDate(s.data_solicitacao)}</span>
                     </div>
                   </div>
 
+                  {/* 4) Tipo + 5) Status */}
                   <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-1 rounded bg-primary/10 text-primary">
+                      <ClipboardList className="h-3 w-3" />
+                      {TIPO_LABEL[s.tipo]}
+                    </span>
                     <span
                       className={cn(
                         "text-[11px] font-semibold uppercase px-2 py-1 rounded",
@@ -176,16 +174,14 @@ export function SolicitacoesResumo() {
                     )}
                   </div>
 
-                  <div className="mt-auto pt-2 border-t border-border">
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Link to="/solicitacoes">Ver detalhes</Link>
-                    </Button>
-                  </div>
+                  {/* Breve descrição */}
+                  {s.descricao && (
+                    <div className="mt-auto pt-2 border-t border-border">
+                      <p className="text-xs text-foreground/80 line-clamp-2 whitespace-pre-wrap">
+                        {s.descricao}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}
