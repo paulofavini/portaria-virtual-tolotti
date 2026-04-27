@@ -40,9 +40,9 @@ function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{ background: "var(--gradient-brand)" }}
     >
-      <div className="w-full max-w-md py-6">
-        <div className="flex justify-center mb-4">
-          <Logo onDark className="w-[170px] h-auto" />
+      <div className="w-full max-w-md pt-12 pb-6">
+        <div className="flex justify-center mb-6">
+          <Logo onDark className="h-24 w-auto drop-shadow-md" />
         </div>
         <div className="bg-card rounded-2xl p-6 sm:p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
           <h2 className="text-lg font-semibold text-foreground mb-1">Acessar sistema</h2>
