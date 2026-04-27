@@ -39,13 +39,11 @@ function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{ background: "var(--gradient-brand)" }}
     >
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8 text-white">
-          <div className="inline-flex items-center justify-center mb-5 px-6 py-4 rounded-2xl bg-white/10 backdrop-blur">
-            <Logo size="xl" onDark className="sm:h-32" />
-          </div>
-          <h1 className="text-2xl font-bold">Portaria Virtual</h1>
-          <p className="text-white/80 text-sm mt-1">Grupo Tolotti</p>
+      <div className="w-full max-w-md py-10">
+        <div className="flex flex-col items-center text-center mb-6 text-white">
+          <Logo size="md" onDark className="h-14 mb-4" />
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Portaria Virtual</h1>
+          <p className="text-white/70 text-xs mt-1">Grupo Tolotti</p>
         </div>
         <div className="bg-card rounded-2xl p-6 sm:p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
           <h2 className="text-lg font-semibold text-foreground mb-1">Acessar sistema</h2>
