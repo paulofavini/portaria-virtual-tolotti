@@ -295,6 +295,8 @@ function MoradorDialog({
   const isEdit = !!morador;
   const [nome, setNome] = useState(morador?.nome ?? "");
   const [telefone, setTelefone] = useState(morador?.telefone ?? "");
+  const [vaga, setVaga] = useState(morador?.vaga ?? "");
+  const [subsolo, setSubsolo] = useState(morador?.subsolo ?? "");
   const [blocoId, setBlocoId] = useState<string>(morador?.unidades?.bloco_id ?? "");
   const [unidadeId, setUnidadeId] = useState<string>(morador?.unidade_id ?? "");
   const [veiculos, setVeiculos] = useState<Veiculo[]>(morador?.veiculos ?? []);
@@ -403,6 +405,8 @@ function MoradorDialog({
             nome: nome.trim(),
             telefone: telefone.trim() || null,
             unidade_id: unidadeId,
+            vaga: vaga.trim() || null,
+            subsolo: subsolo.trim() || null,
           })
           .eq("id", moradorId);
         if (error) throw error;
@@ -413,6 +417,8 @@ function MoradorDialog({
             nome: nome.trim(),
             telefone: telefone.trim() || null,
             unidade_id: unidadeId,
+            vaga: vaga.trim() || null,
+            subsolo: subsolo.trim() || null,
           })
           .select("id")
           .single();
