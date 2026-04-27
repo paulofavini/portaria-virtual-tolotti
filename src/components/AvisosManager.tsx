@@ -58,9 +58,9 @@ const TIPO_LABEL: Record<TipoAviso, string> = {
 };
 
 const TIPO_BADGE: Record<TipoAviso, string> = {
-  informativo: "bg-primary/10 text-primary border-primary/20",
-  urgente: "bg-destructive/10 text-destructive border-destructive/30",
-  manutencao: "bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400",
+  informativo: "bg-primary text-primary-foreground border-primary",
+  urgente: "bg-destructive text-destructive-foreground border-destructive",
+  manutencao: "bg-amber-500 text-white border-amber-600 dark:bg-amber-500 dark:text-black",
 };
 
 const TIPO_ICON: Record<TipoAviso, typeof Bell> = {
