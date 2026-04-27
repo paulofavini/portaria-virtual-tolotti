@@ -82,8 +82,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="py-6 px-4 flex items-center justify-center border-b border-sidebar-border">
-          <Logo onDark className="w-[150px] h-auto" />
+        <div className="pt-5 pb-4 px-3 flex items-center justify-center border-b border-sidebar-border">
+          <Logo onDark className="w-[185px] h-auto" />
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {NAV.map((item) => {
@@ -130,8 +130,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative w-72 bg-sidebar text-sidebar-foreground flex flex-col">
-            <div className="relative py-6 px-4 flex items-center justify-center border-b border-sidebar-border">
-              <Logo onDark className="w-[150px] h-auto" />
+            <div className="relative pt-5 pb-4 px-3 flex items-center justify-center border-b border-sidebar-border">
+              <Logo onDark className="w-[185px] h-auto" />
               <button
                 onClick={() => setOpen(false)}
                 className="absolute top-3 right-3 p-1 rounded-md hover:bg-sidebar-accent"
