@@ -62,13 +62,12 @@ function CondoDetailPage() {
           />
           <Tabs defaultValue="geral" className="mt-2">
             <TabsList>
-              <TabsTrigger value="geral">Geral</TabsTrigger>
-              <TabsTrigger value="operacional">Informações operacionais</TabsTrigger>
-              <TabsTrigger value="moradores">Moradores</TabsTrigger>
-              <TabsTrigger value="ocorrencias">Ocorrências</TabsTrigger>
+              <TabsTrigger value="geral">Dados Gerais</TabsTrigger>
+              <TabsTrigger value="operacional">Informações Operacionais</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="geral" className="mt-4 space-y-3">
+            <TabsContent value="geral" className="mt-4 space-y-6">
+              <div className="space-y-3">
               {formatEndereco(data) && (
                 <div
                   className="bg-card rounded-xl border border-border p-4 flex items-start gap-3"
@@ -89,18 +88,13 @@ function CondoDetailPage() {
                 <ContactCard role="Zelador" name={data.zelador_nome} phone={data.zelador_telefone} />
                 <ContactCard role="Limpeza" name={data.limpeza_nome} phone={data.limpeza_telefone} />
               </div>
+              </div>
+              <MoradoresManager condominioId={data.id} />
+              <OcorrenciasPanel condominioId={data.id} />
             </TabsContent>
 
             <TabsContent value="operacional" className="mt-4">
               <InfoOperacionalPanel condominio={data} />
-            </TabsContent>
-
-            <TabsContent value="moradores" className="mt-4">
-              <MoradoresManager condominioId={data.id} />
-            </TabsContent>
-
-            <TabsContent value="ocorrencias" className="mt-4">
-              <OcorrenciasPanel condominioId={data.id} />
             </TabsContent>
           </Tabs>
         </>
