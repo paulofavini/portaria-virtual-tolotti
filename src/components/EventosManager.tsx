@@ -118,7 +118,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { canManageOperational } = useAuth();
-  const [filtroCondo, setFiltroCondo] = useState<string>("todos");
+  const [filtroCondo, setFiltroCondo] = useState<string>("all");
   const [busca, setBusca] = useState("");
   const [buscaDebounced, setBuscaDebounced] = useState("");
   const [editing, setEditing] = useState<EventoRow | "new" | null>(openNew ? "new" : null);
@@ -214,8 +214,12 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
 
   const filtered = useMemo(() => {
     const result = (eventos ?? []).filter((e) => {
-      if (filtroCondo !== "todos" && e.condominio_id !== filtroCondo) return false;
-      if (buscaDebounced) {
+      // Filtro de condomínio: só aplica se houver valor válido (≠ "all")
+      if (filtroCondo && filtroCondo !== "all" && e.condominio_id !== filtroCondo) {
+        return false;
+      }
+      // Filtro de busca: só aplica se houver texto
+      if (buscaDebounced && buscaDebounced.length > 0) {
         const hay = `${e.titulo ?? ""} ${e.descricao ?? ""} ${e.local ?? ""} ${e.condominios?.nome ?? ""}`.toLowerCase();
         if (!hay.includes(buscaDebounced)) return false;
       }
@@ -252,12 +256,21 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
         <Select value={filtroCondo} onValueChange={setFiltroCondo}>
           <SelectTrigger className="w-[220px]"><SelectValue placeholder="Condomínio" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="todos">Todos os condomínios</SelectItem>
+            <SelectItem value="all">Todos os condomínios</SelectItem>
             {condominios?.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {(filtroCondo !== "all" || busca) && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { setFiltroCondo("all"); setBusca(""); }}
+          >
+            Limpar filtros
+          </Button>
+        )}
         {canManageOperational && (
           <Button onClick={() => setEditing("new")}>
             <Plus className="h-4 w-4 mr-1" /> Novo evento
@@ -275,12 +288,12 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
               ? "Os filtros aplicados não retornaram resultados."
               : canManageOperational ? "Clique em + Novo evento para começar." : "Aguarde novos eventos."}
           </p>
-          {(eventos?.length ?? 0) > 0 && (filtroCondo !== "todos" || busca) && (
+          {(eventos?.length ?? 0) > 0 && (filtroCondo !== "all" || busca) && (
             <Button
               variant="outline"
               size="sm"
               className="mt-3"
-              onClick={() => { setFiltroCondo("todos"); setBusca(""); }}
+              onClick={() => { setFiltroCondo("all"); setBusca(""); }}
             >
               Limpar filtros
             </Button>
