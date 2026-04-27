@@ -7,27 +7,48 @@ import { cn } from "@/lib/utils";
 
 const MAX = 4;
 
-type StatusChamado = "pendente" | "em_andamento" | "concluido" | "cancelado";
+type StatusChamado =
+  | "aberto"
+  | "pendente"
+  | "em_andamento"
+  | "aguardando_terceiro"
+  | "resolvido"
+  | "concluido"
+  | "cancelado";
 
 const STATUS_LABEL: Record<StatusChamado, string> = {
-  pendente: "Pendente",
+  aberto: "Aberto",
+  pendente: "Aberto",
   em_andamento: "Em andamento",
-  concluido: "Concluído",
+  aguardando_terceiro: "Aguardando terceiro",
+  resolvido: "Resolvido",
+  concluido: "Resolvido",
   cancelado: "Cancelado",
 };
 
 function statusStyles(status: StatusChamado) {
   switch (status) {
+    case "aberto":
     case "pendente":
       return "bg-destructive text-destructive-foreground";
     case "em_andamento":
       return "bg-amber-500 text-white";
+    case "aguardando_terceiro":
+      return "bg-orange-500 text-white";
+    case "resolvido":
     case "concluido":
       return "bg-success text-success-foreground";
     default:
       return "bg-muted text-muted-foreground";
   }
 }
+
+const OPEN_STATUSES: StatusChamado[] = [
+  "aberto",
+  "pendente",
+  "em_andamento",
+  "aguardando_terceiro",
+];
 
 function fmtData(iso?: string | null) {
   if (!iso) return "";
@@ -39,10 +60,13 @@ export function ChamadosResumo() {
 
   const items = useMemo(() => {
     const rank: Record<StatusChamado, number> = {
+      aberto: 0,
       pendente: 0,
       em_andamento: 1,
-      concluido: 2,
-      cancelado: 3,
+      aguardando_terceiro: 2,
+      resolvido: 3,
+      concluido: 3,
+      cancelado: 4,
     };
     const list = (chamadosQ.data ?? []) as Array<{
       id: string;
@@ -54,7 +78,7 @@ export function ChamadosResumo() {
       condominios: { nome: string } | null;
     }>;
     return [...list]
-      .filter((c) => c.status === "pendente" || c.status === "em_andamento")
+      .filter((c) => OPEN_STATUSES.includes(c.status))
       .sort((a, b) => {
         const r = (rank[a.status] ?? 9) - (rank[b.status] ?? 9);
         if (r !== 0) return r;
@@ -63,8 +87,8 @@ export function ChamadosResumo() {
       .slice(0, MAX);
   }, [chamadosQ.data]);
 
-  const total = (chamadosQ.data ?? []).filter(
-    (c) => c.status === "pendente" || c.status === "em_andamento",
+  const total = (chamadosQ.data ?? []).filter((c) =>
+    OPEN_STATUSES.includes(c.status as StatusChamado),
   ).length;
 
   return (
