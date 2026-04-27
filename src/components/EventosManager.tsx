@@ -189,7 +189,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   });
 
   const filtered = useMemo(() => {
-    return (eventos ?? []).filter((e) => {
+    const result = (eventos ?? []).filter((e) => {
       if (filtroCondo !== "todos" && e.condominio_id !== filtroCondo) return false;
       if (buscaDebounced) {
         const hay = `${e.titulo ?? ""} ${e.descricao ?? ""} ${e.local ?? ""} ${e.condominios?.nome ?? ""}`.toLowerCase();
@@ -197,6 +197,14 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
       }
       return true;
     });
+    // eslint-disable-next-line no-console
+    console.log("[EventosManager] filtered", {
+      total: eventos?.length ?? 0,
+      filtered: result.length,
+      filtroCondo,
+      buscaDebounced,
+    });
+    return result;
   }, [eventos, filtroCondo, buscaDebounced]);
 
   const handleClose = () => {
