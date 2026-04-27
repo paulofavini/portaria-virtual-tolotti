@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -28,12 +28,18 @@ import {
   Clock,
 } from "lucide-react";
 
-export const Route = createFileRoute("/ocorrencias")({
-  component: () => (
+function OcorrenciasLayout() {
+  const location = useLocation();
+
+  return (
     <RequireAuth>
-      <OcorrenciasPage />
+      {location.pathname === "/ocorrencias" ? <OcorrenciasPage /> : <Outlet />}
     </RequireAuth>
-  ),
+  );
+}
+
+export const Route = createFileRoute("/ocorrencias")({
+  component: OcorrenciasLayout,
 });
 
 const TIPO_META: Record<
