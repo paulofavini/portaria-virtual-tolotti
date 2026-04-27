@@ -197,13 +197,29 @@ export function OrientacoesMural() {
             const isOwner = !!user && o.created_by === user.id;
             const canEdit = isAdmin || (isOperador && isOwner);
             const canDelete = isAdmin || (isOperador && isOwner);
+            const isAlertish = o.tipo === "urgente" || o.tipo === "alerta";
+            const tone =
+              o.tipo === "urgente"
+                ? "bg-red-50 dark:bg-red-950/20"
+                : o.tipo === "alerta"
+                ? "bg-amber-50 dark:bg-amber-950/20"
+                : "bg-card";
+            const softShadow =
+              o.tipo === "urgente"
+                ? "0 2px 8px rgba(239,68,68,0.15)"
+                : o.tipo === "alerta"
+                ? "0 2px 8px rgba(245,158,11,0.12)"
+                : "var(--shadow-card)";
             return (
               <article
                 key={o.id}
                 className={cn(
-                  "relative overflow-hidden rounded-xl border bg-card p-4 pl-5 transition-shadow hover:shadow-md",
+                  "relative overflow-hidden rounded-xl border p-4 pl-5 transition-shadow hover:shadow-md",
+                  tone,
                   s.ring,
+                  o.fixado && !isAlertish && "border-2",
                 )}
+                style={{ boxShadow: softShadow }}
               >
                 <span aria-hidden className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-xl", s.bar)} />
                 <div className="flex items-start gap-3">
