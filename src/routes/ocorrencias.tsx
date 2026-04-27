@@ -90,11 +90,11 @@ function OcorrenciasPage() {
         description="Registro de eventos e situações observadas pela portaria."
         action={
           canManageOperational && (
-            <Link to="/ocorrencias/novo">
-              <Button>
+            <Button asChild>
+              <Link to="/ocorrencias/novo">
                 <Plus className="h-4 w-4 mr-1" /> Nova ocorrência
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )
         }
       />
