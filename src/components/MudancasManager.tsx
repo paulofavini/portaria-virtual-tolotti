@@ -31,6 +31,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 type TipoMudanca = "entrada" | "saida";
 
@@ -233,7 +234,7 @@ export function MudancasManager({ openNew = false }: { openNew?: boolean }) {
                       {m.unidades && (
                         <span className="inline-flex items-center gap-1">
                           <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                          Bloco {m.unidades.blocos?.nome} / Unidade {m.unidades.numero}
+                          {formatUnidadeBloco(m.unidades)}
                         </span>
                       )}
                       {m.moradores && (
