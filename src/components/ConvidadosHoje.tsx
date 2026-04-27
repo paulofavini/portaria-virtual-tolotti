@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Users, Building2, Home, PartyPopper, Calendar } from "lucide-react";
+import { Users, Building2, Home, PartyPopper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useEventos } from "@/lib/queries";

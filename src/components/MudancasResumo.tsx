@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { Link } from "@tanstack/react-router";
-import { Truck, Building2, Home, Calendar, ArrowDownToLine, ArrowUpFromLine, User } from "lucide-react";
+import { Truck, Building2, Home, ArrowDownToLine, ArrowUpFromLine, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMudancas } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
+import { DateBadge } from "@/components/DateBadge";
 
 const MAX = 4;
 
@@ -12,12 +13,6 @@ function parseLocalDate(value: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   return new Date(value);
-}
-
-function fmtData(iso?: string | null) {
-  if (!iso) return "";
-  const d = parseLocalDate(iso);
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
 export function MudancasResumo() {
@@ -91,10 +86,7 @@ export function MudancasResumo() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <div className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    <span>{fmtData(m.data)}</span>
-                  </div>
+                  <DateBadge iso={m.data} />
 
                   <div className="flex items-start gap-2">
                     <Building2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
