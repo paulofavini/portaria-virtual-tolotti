@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useEventos } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,32 +140,32 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
     },
   });
 
-  const { data: eventos, isLoading } = useQuery({
-    queryKey: ["eventos", "full"],
-    staleTime: 0,
-    refetchOnMount: "always",
+  // Mesma query usada no Dashboard (hook unificado em src/lib/queries.ts)
+  const eventosQuery = useEventos();
+  const baseEventos = (eventosQuery.data ?? []) as unknown as EventoRow[];
+  const isLoading = eventosQuery.isLoading;
+
+  // Enriquecer com nome do criador (perfis) — não bloqueia a renderização
+  const { data: creatorsById } = useQuery({
+    queryKey: ["eventos", "creators", baseEventos.map((e) => e.created_by).filter(Boolean).join(",")],
+    enabled: baseEventos.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("eventos")
-        .select(
-          "id, titulo, descricao, data, horario, local, observacoes, condominio_id, unidade_id, morador_id, created_at, created_by, condominios(nome), unidades(numero, blocos(nome)), moradores(nome)",
-        )
-        .order("data", { ascending: false })
-        .order("horario", { ascending: false });
-      // eslint-disable-next-line no-console
-      console.log("[EventosManager] query result", { count: data?.length, error, data });
-      if (error) throw error;
-      const list = (data ?? []) as unknown as EventoRow[];
-      const ids = Array.from(new Set(list.map((a) => a.created_by).filter(Boolean) as string[]));
-      if (ids.length) {
-        const { data: profs } = await supabase
-          .from("profiles").select("id, nome_completo").in("id", ids);
-        const byId = new Map((profs ?? []).map((p) => [p.id, p]));
-        for (const a of list) if (a.created_by) a.creator = byId.get(a.created_by) ?? null;
-      }
-      return list;
+      const ids = Array.from(
+        new Set(baseEventos.map((a) => a.created_by).filter(Boolean) as string[]),
+      );
+      if (!ids.length) return new Map<string, { id: string; nome_completo: string | null }>();
+      const { data } = await supabase
+        .from("profiles").select("id, nome_completo").in("id", ids);
+      return new Map((data ?? []).map((p) => [p.id, p] as const));
     },
   });
+
+  const eventos = useMemo(() => {
+    if (!creatorsById) return baseEventos;
+    return baseEventos.map((e) =>
+      e.created_by ? { ...e, creator: creatorsById.get(e.created_by) ?? null } : e,
+    );
+  }, [baseEventos, creatorsById]);
 
   // Contagem de convidados (todos x presentes) por evento — em uma única query
   const { data: convCounts } = useQuery({
