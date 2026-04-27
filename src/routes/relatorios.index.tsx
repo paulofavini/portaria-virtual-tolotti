@@ -29,7 +29,8 @@ import { useCondominios } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import {
   exportCSV,
-  exportPDF,
+  generateReportPDF,
+  type ReportFilter,
   fmtDate,
   fmtDateTime,
   type Column,
@@ -173,14 +174,15 @@ function OperacionalSection() {
   };
   const handleExportPDF = () => {
     if (!filtered.length) return toast.error("Nenhum registro para exportar");
-    exportPDF(
-      `relatorio_${reportType}_${stamp()}`,
-      `Relatório — ${OP_LABELS[reportType]}`,
+    const { condominio, filters } = buildMeta(condominios, condominioId, dataInicio, dataFim, statusFiltro);
+    generateReportPDF({
+      filename: `relatorio_${reportType}_${stamp()}`,
+      title: `Relatório — ${OP_LABELS[reportType]}`,
       columns,
-      filtered,
-      buildMeta(condominios, condominioId, dataInicio, dataFim),
-    );
-    toast.success(`PDF gerado com ${filtered.length} registro(s)`);
+      data: filtered,
+      condominio,
+      filters,
+    }).then(() => toast.success(`PDF gerado com ${filtered.length} registro(s)`));
   };
 
   return (
@@ -445,8 +447,12 @@ function CadastralSection() {
   };
   const handleExportPDF = () => {
     if (!rows.length) return toast.error("Nenhum registro para exportar");
-    exportPDF(`cadastral_${type}_${stamp()}`, `Cadastral — ${CAD_LABELS[type]}`, columns, rows);
-    toast.success(`PDF gerado com ${rows.length} registro(s)`);
+    generateReportPDF({
+      filename: `cadastral_${type}_${stamp()}`,
+      title: `Cadastral — ${CAD_LABELS[type]}`,
+      columns,
+      data: rows,
+    }).then(() => toast.success(`PDF gerado com ${rows.length} registro(s)`));
   };
 
   return (
@@ -701,7 +707,12 @@ function AuditoriaSection() {
         }}
         onPDF={() => {
           if (!filtered.length) return toast.error("Nada para exportar");
-          exportPDF(`auditoria_${stamp()}`, "Auditoria do sistema", columns, filtered);
+          generateReportPDF({
+            filename: `auditoria_${stamp()}`,
+            title: "Auditoria do sistema",
+            columns,
+            data: filtered,
+          });
         }}
       />
     </div>
@@ -820,13 +831,20 @@ function buildMeta(
   condominioId: string,
   ini: string,
   fim: string,
-) {
-  const parts: string[] = [];
+  status?: string,
+): { condominio?: string; filters: ReportFilter[] } {
+  let condominio: string | undefined;
   if (condominioId !== "todos") {
     const c = condominios?.find((x) => x.id === condominioId);
-    if (c) parts.push(`Condomínio: ${c.nome}`);
+    if (c) condominio = c.nome;
   }
-  if (ini) parts.push(`De ${fmtDate(ini)}`);
-  if (fim) parts.push(`Até ${fmtDate(fim)}`);
-  return parts.join("  •  ");
+  const filters: ReportFilter[] = [];
+  if (ini || fim) {
+    const period = `${ini ? fmtDate(ini) : "—"} até ${fim ? fmtDate(fim) : "—"}`;
+    filters.push({ label: "Período", value: period });
+  }
+  if (status && status !== "todos") {
+    filters.push({ label: "Status", value: status });
+  }
+  return { condominio, filters };
 }
