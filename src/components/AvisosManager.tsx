@@ -305,7 +305,7 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
               <div
                 key={a.id}
                 className={cn(
-                  "rounded-xl border p-4 bg-card",
+                  "rounded-xl border p-4 sm:p-5 bg-card transition-shadow hover:shadow-md",
                   a.tipo === "urgente" && "border-destructive/40 bg-destructive/5",
                   a.fixado && "ring-1 ring-primary/30 border-primary/40",
                 )}
@@ -321,34 +321,55 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-foreground shrink-0" />
-                      <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight break-words">
-                        {a.condominios?.nome ?? "Sem condomínio"}
-                      </h2>
-                      {a.fixado && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
-                          <Pin className="h-3 w-3" /> Fixado
-                        </span>
-                      )}
+                    {/* Linha 1: condomínio + badge tipo à direita */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/70 shrink-0" />
+                        <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight break-words">
+                          {a.condominios?.nome ?? "Sem condomínio"}
+                        </h2>
+                      </div>
                       <span className={cn(
-                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
+                        "text-xs sm:text-sm font-bold uppercase px-2 py-0.5 rounded border shrink-0",
                         TIPO_BADGE[a.tipo],
                       )}>
                         {TIPO_LABEL[a.tipo]}
                       </span>
-                      {!a.ativo && (
-                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                          Arquivado
-                        </span>
-                      )}
                     </div>
-                    <h3 className="text-sm sm:text-[15px] font-medium text-foreground/90 mt-2 break-words">
+
+                    {/* Badges secundários */}
+                    {(a.fixado || !a.ativo) && (
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        {a.fixado && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                            <Pin className="h-3 w-3" /> Fixado
+                          </span>
+                        )}
+                        {!a.ativo && (
+                          <span className="text-[11px] font-bold uppercase px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
+                            Arquivado
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Título do aviso (máx. 2 linhas) */}
+                    <h3
+                      className="text-base font-medium text-foreground/90 break-words overflow-hidden"
+                      style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
                       {a.titulo || (a.descricao ? a.descricao.slice(0, 60) : "(sem título)")}
                     </h3>
+
                     {a.titulo && a.descricao && a.descricao.trim() !== "" && (
                       <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{a.descricao}</p>
                     )}
+
+                    {/* Metadados */}
                     <div className="text-xs text-muted-foreground mt-3 flex flex-wrap gap-x-3 gap-y-1">
                       <span>{new Date(a.data).toLocaleDateString("pt-BR")}</span>
                       {a.data_expiracao && (
