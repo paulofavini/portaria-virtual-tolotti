@@ -62,6 +62,11 @@ async function loadLogo(url: string): Promise<{ dataUrl: string; w: number; h: n
 
 export type ReportFilter = { label: string; value: string };
 
+export type ReportSummaryCard = {
+  label: string;
+  value: string | number;
+};
+
 export type ReportPDFOptions<T> = {
   filename: string;
   title: string;
@@ -71,17 +76,35 @@ export type ReportPDFOptions<T> = {
   condominio?: string;
   /** Filtros aplicados (período, status, etc.). */
   filters?: ReportFilter[];
+  /** Cards-resumo (Total, Pendentes, Finalizadas...). */
+  summary?: ReportSummaryCard[];
   /** Orientação da página. Default: landscape. */
   orientation?: "portrait" | "landscape";
 };
 
+/* ==== Paleta corporativa Grupo Tolotti ==== */
+const C_PRIMARY: [number, number, number] = [0, 51, 102];          // #003366 azul corporativo
+const C_BAND: [number, number, number] = [240, 244, 248];           // #f0f4f8 faixa header
+const C_INFO_BG: [number, number, number] = [249, 250, 251];        // #f9fafb bloco informações
+const C_CARD_BG: [number, number, number] = [238, 242, 247];        // #eef2f7 cards resumo
+const C_BORDER: [number, number, number] = [220, 226, 234];
+const C_TEXT_DARK: [number, number, number] = [33, 41, 56];
+const C_TEXT_MUTED: [number, number, number] = [110, 119, 138];
+const C_ZEBRA: [number, number, number] = [248, 250, 252];
+
+const PAGE_MARGIN = 40;
+
 /** Renderiza o cabeçalho corporativo padrão do Grupo Tolotti. */
 async function renderHeader(doc: jsPDF, title: string): Promise<number> {
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 40;
 
-  // Logos com altura padronizada (~38pt) e largura proporcional.
-  const LOGO_H = 38;
+  // Faixa azul-claro ocupando toda a largura.
+  const BAND_H = 78;
+  doc.setFillColor(...C_BAND);
+  doc.rect(0, 0, pageWidth, BAND_H, "F");
+
+  // Logos proporcionais (altura ~46pt — levemente maiores).
+  const LOGO_H = 46;
   const [logoLeft, logoRight] = await Promise.all([
     loadLogo(logoTolottiUrl),
     loadLogo(logo18AnosUrl),
@@ -89,32 +112,31 @@ async function renderHeader(doc: jsPDF, title: string): Promise<number> {
   const leftW = (logoLeft.w / logoLeft.h) * LOGO_H;
   const rightW = (logoRight.w / logoRight.h) * LOGO_H;
 
-  const headerTop = 28;
-  doc.addImage(logoLeft.dataUrl, "PNG", margin, headerTop, leftW, LOGO_H);
+  const logoY = (BAND_H - LOGO_H) / 2;
+  doc.addImage(logoLeft.dataUrl, "PNG", PAGE_MARGIN, logoY, leftW, LOGO_H);
   doc.addImage(
     logoRight.dataUrl,
     "PNG",
-    pageWidth - margin - rightW,
-    headerTop,
+    pageWidth - PAGE_MARGIN - rightW,
+    logoY,
     rightW,
     LOGO_H,
   );
 
-  // Título centralizado entre os logos.
+  // Título centralizado verticalmente, em azul corporativo.
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(20, 28, 48);
-  doc.text(title, pageWidth / 2, headerTop + LOGO_H / 2 + 4, { align: "center" });
+  doc.setFontSize(17);
+  doc.setTextColor(...C_PRIMARY);
+  doc.text(title, pageWidth / 2, BAND_H / 2 + 6, { align: "center" });
 
-  // Linha divisória.
-  const dividerY = headerTop + LOGO_H + 10;
-  doc.setDrawColor(200, 206, 216);
-  doc.setLineWidth(0.8);
-  doc.line(margin, dividerY, pageWidth - margin, dividerY);
+  // Borda inferior fina da faixa.
+  doc.setDrawColor(...C_PRIMARY);
+  doc.setLineWidth(1.2);
+  doc.line(0, BAND_H, pageWidth, BAND_H);
 
   doc.setFont("helvetica", "normal");
   doc.setTextColor(0, 0, 0);
-  return dividerY;
+  return BAND_H;
 }
 
 function renderFooter(doc: jsPDF) {
@@ -123,14 +145,117 @@ function renderFooter(doc: jsPDF) {
   const pageHeight = doc.internal.pageSize.getHeight();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
+    // Linha separadora acima do rodapé.
+    doc.setDrawColor(...C_BORDER);
+    doc.setLineWidth(0.5);
+    doc.line(PAGE_MARGIN, pageHeight - 30, pageWidth - PAGE_MARGIN, pageHeight - 30);
+
     doc.setFontSize(8);
-    doc.setTextColor(130);
-    doc.text("Grupo Tolotti — Relatório gerado pelo sistema", 40, pageHeight - 18);
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth - 40, pageHeight - 18, {
+    doc.setTextColor(...C_TEXT_MUTED);
+    doc.setFont("helvetica", "normal");
+    doc.text("Grupo Tolotti — Portaria Virtual", PAGE_MARGIN, pageHeight - 16);
+    doc.text(`Página ${i} de ${pageCount}`, pageWidth - PAGE_MARGIN, pageHeight - 16, {
       align: "right",
     });
     doc.setTextColor(0);
   }
+}
+
+/** Bloco de informações (condomínio, período, data) com fundo leve. */
+function renderInfoBlock(
+  doc: jsPDF,
+  startY: number,
+  condominio: string | undefined,
+  filters: ReportFilter[] | undefined,
+  stamp: string,
+): number {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const innerW = pageWidth - PAGE_MARGIN * 2;
+  const padX = 14;
+  const padY = 12;
+
+  // Constrói pares (label, value) — esquerda: condomínio + filtros não-data; direita: período + data geração
+  const periodFilter = filters?.find((f) => /per[ií]odo|data/i.test(f.label));
+  const otherFilters = (filters ?? []).filter((f) => f !== periodFilter);
+
+  const left: ReportFilter[] = [];
+  const right: ReportFilter[] = [];
+  if (condominio) left.push({ label: "Condomínio", value: condominio });
+  otherFilters.forEach((f) => left.push(f));
+  if (periodFilter) right.push(periodFilter);
+  right.push({ label: "Gerado em", value: stamp });
+
+  const lineH = 14;
+  const rows = Math.max(left.length, right.length, 1);
+  const blockH = padY * 2 + rows * lineH;
+
+  // Card com fundo claro e borda sutil.
+  doc.setFillColor(...C_INFO_BG);
+  doc.setDrawColor(...C_BORDER);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(PAGE_MARGIN, startY, innerW, blockH, 4, 4, "FD");
+
+  const colW = innerW / 2;
+  const drawCol = (items: ReportFilter[], xLabel: number) => {
+    items.forEach((it, i) => {
+      const y = startY + padY + i * lineH + 9;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...C_TEXT_MUTED);
+      doc.text(`${it.label.toUpperCase()}`, xLabel, y);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(...C_TEXT_DARK);
+      const valueX = xLabel + 80;
+      const value = doc.splitTextToSize(String(it.value), colW - 90);
+      doc.text(value[0] ?? "", valueX, y);
+    });
+  };
+
+  drawCol(left, PAGE_MARGIN + padX);
+  drawCol(right, PAGE_MARGIN + colW + padX);
+
+  return startY + blockH;
+}
+
+/** Cards-resumo horizontais (TOTAL / PENDENTES / FINALIZADAS...). */
+function renderSummaryCards(
+  doc: jsPDF,
+  startY: number,
+  cards: ReportSummaryCard[],
+): number {
+  if (!cards.length) return startY;
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const innerW = pageWidth - PAGE_MARGIN * 2;
+  const gap = 12;
+  const cardW = (innerW - gap * (cards.length - 1)) / cards.length;
+  const cardH = 52;
+
+  cards.forEach((card, i) => {
+    const x = PAGE_MARGIN + i * (cardW + gap);
+    doc.setFillColor(...C_CARD_BG);
+    doc.setDrawColor(...C_BORDER);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(x, startY, cardW, cardH, 4, 4, "FD");
+
+    // Barra lateral azul.
+    doc.setFillColor(...C_PRIMARY);
+    doc.rect(x, startY, 3, cardH, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...C_TEXT_MUTED);
+    doc.text(card.label.toUpperCase(), x + 14, startY + 18);
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(...C_PRIMARY);
+    doc.text(String(card.value), x + 14, startY + 40);
+  });
+
+  doc.setTextColor(0);
+  doc.setFont("helvetica", "normal");
+  return startY + cardH;
 }
 
 /** Geração padronizada de PDF para todos os relatórios. */
@@ -142,48 +267,48 @@ export async function generateReportPDF<T>(opts: ReportPDFOptions<T>): Promise<v
     data,
     condominio,
     filters,
+    summary,
     orientation = "landscape",
   } = opts;
 
   const doc = new jsPDF({ orientation, unit: "pt", format: "a4" });
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 40;
-
-  const dividerY = await renderHeader(doc, title);
-  let cursorY = dividerY + 16;
-
-  // Linha 1: condomínio (esq) + data de geração (dir)
   const stamp = new Date().toLocaleString("pt-BR");
-  doc.setFontSize(9);
-  if (condominio) {
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(20, 28, 48);
-    doc.text(`Condomínio: ${condominio}`, margin, cursorY);
-  }
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(110);
-  doc.text(`Gerado em ${stamp}`, pageWidth - margin, cursorY, { align: "right" });
-  cursorY += 14;
 
-  // Linha 2+: filtros aplicados
-  if (filters && filters.length) {
-    doc.setTextColor(70);
-    const text = filters.map((f) => `${f.label}: ${f.value}`).join("   •   ");
-    const wrapped = doc.splitTextToSize(text, pageWidth - margin * 2);
-    doc.text(wrapped, margin, cursorY);
-    cursorY += wrapped.length * 11;
+  const headerH = await renderHeader(doc, title);
+
+  // Bloco de informações com mais respiro.
+  let cursorY = headerH + 22;
+  cursorY = renderInfoBlock(doc, cursorY, condominio, filters, stamp);
+
+  // Cards-resumo.
+  if (summary && summary.length) {
+    cursorY += 16;
+    cursorY = renderSummaryCards(doc, cursorY, summary);
   }
 
-  doc.setTextColor(0);
-
+  // Tabela.
+  cursorY += 18;
   autoTable(doc, {
     head: [columns.map((c) => c.label)],
     body: data.map((r) => columns.map((c) => String(c.accessor(r) ?? ""))),
-    startY: cursorY + 4,
-    styles: { fontSize: 8, cellPadding: 4, overflow: "linebreak" },
-    headStyles: { fillColor: [20, 28, 48], textColor: 255, fontStyle: "bold" },
-    alternateRowStyles: { fillColor: [245, 247, 250] },
-    margin: { left: margin, right: margin, bottom: 36 },
+    startY: cursorY,
+    styles: {
+      fontSize: 8.5,
+      cellPadding: 7,
+      overflow: "linebreak",
+      lineColor: C_BORDER,
+      lineWidth: 0.3,
+      textColor: C_TEXT_DARK,
+    },
+    headStyles: {
+      fillColor: C_PRIMARY,
+      textColor: 255,
+      fontStyle: "bold",
+      fontSize: 9,
+      cellPadding: 8,
+    },
+    alternateRowStyles: { fillColor: C_ZEBRA },
+    margin: { left: PAGE_MARGIN, right: PAGE_MARGIN, bottom: 44 },
   });
 
   renderFooter(doc);

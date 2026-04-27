@@ -31,6 +31,7 @@ import {
   exportCSV,
   generateReportPDF,
   type ReportFilter,
+  type ReportSummaryCard,
   fmtDate,
   fmtDateTime,
   type Column,
@@ -175,6 +176,13 @@ function OperacionalSection() {
   const handleExportPDF = () => {
     if (!filtered.length) return toast.error("Nenhum registro para exportar");
     const { condominio, filters } = buildMeta(condominios, condominioId, dataInicio, dataFim, statusFiltro);
+    const summary: ReportSummaryCard[] = [{ label: "Total", value: filtered.length }];
+    if (getStatusOptions(reportType).length) {
+      const pendentes = filtered.filter((r: any) => pickStatus(reportType, r) === "pendente").length;
+      const concluidos = filtered.filter((r: any) => pickStatus(reportType, r) === "concluido").length;
+      summary.push({ label: "Pendentes", value: pendentes });
+      summary.push({ label: "Finalizadas", value: concluidos });
+    }
     generateReportPDF({
       filename: `relatorio_${reportType}_${stamp()}`,
       title: `Relatório — ${OP_LABELS[reportType]}`,
@@ -182,6 +190,7 @@ function OperacionalSection() {
       data: filtered,
       condominio,
       filters,
+      summary,
     }).then(() => toast.success(`PDF gerado com ${filtered.length} registro(s)`));
   };
 
@@ -452,6 +461,7 @@ function CadastralSection() {
       title: `Cadastral — ${CAD_LABELS[type]}`,
       columns,
       data: rows,
+      summary: [{ label: "Total de registros", value: rows.length }],
     }).then(() => toast.success(`PDF gerado com ${rows.length} registro(s)`));
   };
 
@@ -712,6 +722,7 @@ function AuditoriaSection() {
             title: "Auditoria do sistema",
             columns,
             data: filtered,
+            summary: [{ label: "Total de eventos", value: filtered.length }],
           });
         }}
       />
