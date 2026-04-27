@@ -131,8 +131,8 @@ function validadeTexto(r: LiberacaoRow) {
 
 export function LiberacoesManager() {
   const qc = useQueryClient();
-  const { isAdmin, hasRole } = useAuth() as any;
-  const canManage = isAdmin || (typeof hasRole === "function" ? hasRole("operador") : true);
+  const { canManageOperational } = useAuth();
+  const canManage = canManageOperational;
 
   const { data: condominios = [] } = useCondominios();
   const { data: moradores = [] } = useMoradores();
