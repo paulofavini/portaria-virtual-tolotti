@@ -34,6 +34,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 export const LOCAIS_EVENTO = [
   "Salão de Festas",
@@ -357,7 +358,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
                       )}
                       {e.unidades && (
                         <span>
-                          Bloco {e.unidades.blocos?.nome} / Unidade {e.unidades.numero}
+                          {formatUnidadeBloco(e.unidades)}
                         </span>
                       )}
                       {e.moradores && (
