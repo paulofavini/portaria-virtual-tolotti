@@ -593,6 +593,7 @@ export type Database = {
           data_solicitacao: string
           descricao: string
           id: string
+          morador_id: string | null
           morador_nome: string | null
           pago: boolean
           status: Database["public"]["Enums"]["status_solicitacao"]
@@ -608,6 +609,7 @@ export type Database = {
           data_solicitacao?: string
           descricao: string
           id?: string
+          morador_id?: string | null
           morador_nome?: string | null
           pago?: boolean
           status?: Database["public"]["Enums"]["status_solicitacao"]
@@ -623,6 +625,7 @@ export type Database = {
           data_solicitacao?: string
           descricao?: string
           id?: string
+          morador_id?: string | null
           morador_nome?: string | null
           pago?: boolean
           status?: Database["public"]["Enums"]["status_solicitacao"]
