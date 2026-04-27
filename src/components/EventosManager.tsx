@@ -130,6 +130,8 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
 
   const { data: eventos, isLoading } = useQuery({
     queryKey: ["eventos", "full"],
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data, error } = await supabase
         .from("eventos")
@@ -481,7 +483,8 @@ function EventoDialog({
         if (error) throw error;
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
-      qc.invalidateQueries({ queryKey: ["eventos"] });
+      await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
+      await qc.refetchQueries({ queryKey: ["eventos", "full"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
