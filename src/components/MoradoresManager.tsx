@@ -207,6 +207,24 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
                       ))}
                     </div>
                   )}
+                  {(m.creator?.nome_completo || m.created_at) && (
+                    <div className="mt-2 text-[11px] text-muted-foreground">
+                      Cadastrado por{" "}
+                      <span className="font-medium text-foreground/80">
+                        {m.creator?.nome_completo ?? "—"}
+                      </span>
+                      {m.created_at && (
+                        <>
+                          {" "}em{" "}
+                          {new Date(m.created_at).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          })}
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
                 {canManageOperational && (
                   <div className="flex gap-1">
