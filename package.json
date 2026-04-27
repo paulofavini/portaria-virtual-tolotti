@@ -3,6 +3,11 @@
   "private": true,
   "sideEffects": false,
   "type": "module",
+  "overrides": {
+    "@tanstack/start-plugin-core": "1.167.35",
+    "@tanstack/start-server-core": "1.167.22",
+    "@tanstack/start-client-core": "1.167.20"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
