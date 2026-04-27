@@ -35,6 +35,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 type Origem = "morador" | "sindico" | "empresa";
 type TipoValidade = "unica" | "periodo" | "permanente";
@@ -866,7 +867,7 @@ export function LiberacoesManager() {
                     <SelectContent>
                       {moradoresDoCondo.map((m: any) => (
                         <SelectItem key={m.id} value={m.id}>
-                          {m.nome} {m.unidades ? `— ${m.unidades.blocos?.nome ?? ""} ${m.unidades.numero}` : ""}
+                          {m.nome}{m.unidades ? ` — ${formatUnidadeBloco(m.unidades)}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, User, Phone, Home, Car, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { formatUnidadeBloco } from "@/lib/address";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -181,10 +182,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
                     {m.unidades && (
                       <span className="inline-flex items-center gap-1">
                         <Home className="h-3 w-3" />
-                        {m.unidades.blocos?.nome
-                          ? `Bloco ${m.unidades.blocos.nome} · `
-                          : ""}
-                        Unid. {m.unidades.numero}
+                        {formatUnidadeBloco(m.unidades)}
                         {m.vaga ? ` · Vaga ${m.vaga}` : ""}
                         {m.pavimento ? ` · Pavimento ${m.pavimento}` : ""}
                       </span>

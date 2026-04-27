@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { OrientacoesMural } from "@/components/OrientacoesMural";
 import { SolicitacoesResumo } from "@/components/SolicitacoesResumo";
 import { ConvidadosHoje } from "@/components/ConvidadosHoje";
+import { formatUnidadeBloco } from "@/lib/address";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -270,7 +271,7 @@ function Dashboard() {
                 item={{
                   id: a.id,
                   title: `${a.fixado ? "📌 " : ""}${a.titulo ?? a.descricao}`,
-                  subtitle: `${a.condominios?.nome ?? ""}${a.unidades ? ` · Bloco ${a.unidades.blocos?.nome} / Unidade ${a.unidades.numero}` : ""}`,
+                  subtitle: `${a.condominios?.nome ?? ""}${a.unidades ? ` · ${formatUnidadeBloco(a.unidades)}` : ""}`,
                   meta: fmtDate(a.data),
                   badge: { label: "Urgente", tone: "destructive" },
                 }}
@@ -323,7 +324,7 @@ function Dashboard() {
                 item={{
                   id: e.id,
                   title: e.titulo ?? e.descricao ?? "Evento",
-                  subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · Bloco ${e.unidades.blocos?.nome} / Unidade ${e.unidades.numero}` : ""}${e.local ? ` · ${e.local}` : ""}`,
+                  subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · ${formatUnidadeBloco(e.unidades)}` : ""}${e.local ? ` · ${e.local}` : ""}`,
                   meta: e.horario ? `${fmtDate(e.data)} ${String(e.horario).slice(0,5)}` : fmtDate(e.data),
                 }}
               />
@@ -341,7 +342,7 @@ function Dashboard() {
                 item={{
                   id: m.id,
                   title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
-                  subtitle: `Bloco ${m.unidades?.blocos?.nome} / Unidade ${m.unidades?.numero}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
+                  subtitle: `${formatUnidadeBloco(m.unidades)}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
                   badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
                 }}
               />
@@ -382,7 +383,7 @@ function Dashboard() {
                     item={{
                       id: m.id,
                       title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
-                      subtitle: `Bloco ${m.unidades?.blocos?.nome} / Unidade ${m.unidades?.numero}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
+                      subtitle: `${formatUnidadeBloco(m.unidades)}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
                       meta: fmtDate(m.data),
                       badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
                     }}

@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { formatUnidadeBloco } from "@/lib/address";
 
 interface SearchResults {
   condominios: Array<{ id: string; nome: string }>;
@@ -158,7 +159,7 @@ export function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChan
                   <div className="text-xs text-muted-foreground truncate">
                     {m.telefone ? `${m.telefone} · ` : ""}
                     {m.unidades?.blocos?.condominios?.nome}
-                    {m.unidades ? ` · Bloco ${m.unidades.blocos?.nome} / Un. ${m.unidades.numero}` : ""}
+                    {m.unidades ? ` · ${formatUnidadeBloco(m.unidades)}` : ""}
                   </div>
                 </div>
               </CommandItem>

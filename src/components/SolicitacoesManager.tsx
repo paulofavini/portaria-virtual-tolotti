@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/command";
 import { useCondominios, useBlocos, useUnidades } from "@/lib/queries";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 type TipoSolicitacao = "tag" | "controle" | "imagens" | "acesso" | "outros";
 type StatusSolicitacao = "pendente" | "em_andamento" | "concluido" | "cancelado";
@@ -322,7 +323,7 @@ export function SolicitacoesManager() {
               {(s.unidades || s.morador_nome) && (
                 <div className="text-xs text-muted-foreground mb-1">
                   {s.unidades && (
-                    <>Bloco {s.unidades.blocos?.nome} / Unidade {s.unidades.numero}</>
+                    <>{formatUnidadeBloco(s.unidades)}</>
                   )}
                   {s.unidades && s.morador_nome ? " · " : ""}
                   {s.morador_nome ?? ""}
