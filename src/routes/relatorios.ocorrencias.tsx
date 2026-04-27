@@ -58,6 +58,43 @@ const TIPO_CARDS: Array<{
   { key: "geral", label: "Geral", icon: AlertTriangle, tone: "bg-destructive/10 text-destructive" },
 ];
 
+function SummaryCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  highlight = false,
+}: {
+  label: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className="bg-card rounded-xl border border-border p-3 flex items-center gap-3"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${tone}`}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">
+          {label}
+        </div>
+        <div
+          className={
+            highlight ? "text-2xl font-bold text-foreground leading-tight" : "text-xl font-semibold text-foreground leading-tight"
+          }
+        >
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function RelatorioOcorrenciasPage() {
   const { isAdmin, roles, loading: authLoading } = useAuth();
   const isSindico = roles.includes("sindico");
