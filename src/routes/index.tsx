@@ -7,7 +7,6 @@ import {
   AlertTriangle,
   Wrench,
   ChevronRight,
-  Clock,
 } from "lucide-react";
 import {
   useAvisos,
@@ -21,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { OrientacoesMural } from "@/components/OrientacoesMural";
 import { SolicitacoesResumo } from "@/components/SolicitacoesResumo";
 import { ConvidadosHoje } from "@/components/ConvidadosHoje";
-import { formatUnidadeBloco } from "@/lib/address";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -30,17 +28,6 @@ export const Route = createFileRoute("/")({
     </RequireAuth>
   ),
 });
-
-function fmtDate(iso?: string | null) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-}
-function fmtDateTime(iso?: string | null) {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-}
 
 function StatCard({
   label,
@@ -83,100 +70,6 @@ function StatCard({
   );
 }
 
-function SectionCard({
-  title,
-  icon: Icon,
-  count,
-  to,
-  children,
-  accent = "primary",
-}: {
-  title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  count: number;
-  to: string;
-  children: React.ReactNode;
-  accent?: "primary" | "warning" | "destructive" | "success";
-}) {
-  const accentBar =
-    accent === "destructive"
-      ? "bg-destructive"
-      : accent === "warning"
-        ? "bg-warning"
-        : accent === "success"
-          ? "bg-success"
-          : "bg-primary";
-  return (
-    <div
-      className="bg-card rounded-xl border border-border overflow-hidden"
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      <div className={cn("h-1", accentBar)} />
-      <div className="p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Icon className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-semibold text-foreground">{title}</h3>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{count}</span>
-          </div>
-          <Link to={to} className="text-xs font-medium text-primary hover:underline">
-            Ver tudo
-          </Link>
-        </div>
-        <div className="space-y-2">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-function Empty({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="text-sm text-muted-foreground py-3 text-center border border-dashed border-border rounded-lg">
-      {children}
-    </div>
-  );
-}
-
-type Item = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  meta?: string;
-  badge?: { label: string; tone: "destructive" | "warning" | "success" | "primary" };
-};
-
-function Row({ item }: { item: Item }) {
-  const toneClass = item.badge
-    ? item.badge.tone === "destructive"
-      ? "bg-destructive text-destructive-foreground"
-      : item.badge.tone === "warning"
-        ? "bg-warning text-warning-foreground"
-        : item.badge.tone === "success"
-          ? "bg-success text-success-foreground"
-          : "bg-primary text-primary-foreground"
-    : "";
-  return (
-    <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-foreground truncate">{item.title}</span>
-          {item.badge && (
-            <span className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5 rounded", toneClass)}>
-              {item.badge.label}
-            </span>
-          )}
-        </div>
-        {item.subtitle && <p className="text-xs text-muted-foreground truncate">{item.subtitle}</p>}
-      </div>
-      {item.meta && (
-        <span className="text-[11px] text-muted-foreground whitespace-nowrap flex items-center gap-1">
-          <Clock className="h-3 w-3" /> {item.meta}
-        </span>
-      )}
-    </div>
-  );
-}
-
 function Dashboard() {
   const avisos = useAvisos();
   const eventos = useEventos();
@@ -191,19 +84,11 @@ function Dashboard() {
 
   const eventosHoje = (eventos.data ?? []).filter((e) => isToday(e.data));
 
-  const mudancasHoje = (mudancas.data ?? [])
-    .filter((m) => isToday(m.data))
-    .sort((a, b) => {
-      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-      return tb - ta;
-    });
+  const mudancasHoje = (mudancas.data ?? []).filter((m) => isToday(m.data));
 
   const ocorrenciasHoje = (ocorrencias.data ?? []).filter((o) => isToday(o.data_hora));
 
   const chamadosPendentes = (chamados.data ?? []).filter((c) => c.status === "pendente");
-  const chamadosAndamento = (chamados.data ?? []).filter((c) => c.status === "em_andamento");
-  const chamadosConcluidos = (chamados.data ?? []).filter((c) => c.status === "concluido").slice(0, 5);
 
   return (
     <div className="space-y-6 pb-24">
@@ -230,146 +115,12 @@ function Dashboard() {
         <StatCard label="Chamados pendentes" value={chamadosPendentes.length} icon={Wrench} tone="destructive" to="/chamados" />
       </div>
 
-      {/* Avisos urgentes (topo) */}
-      {avisosUrgentes.length > 0 && (
-        <div
-          className="rounded-xl border border-destructive/30 bg-destructive/5 p-4"
-          style={{ boxShadow: "var(--shadow-card)" }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Bell className="h-4 w-4 text-destructive" />
-            <h3 className="font-semibold text-destructive">Avisos urgentes</h3>
-          </div>
-          <div className="space-y-1">
-            {avisosUrgentes.slice(0, 5).map((a) => (
-              <Row
-                key={a.id}
-                item={{
-                  id: a.id,
-                  title: `${a.fixado ? "📌 " : ""}${a.titulo ?? a.descricao}`,
-                  subtitle: `${a.condominios?.nome ?? ""}${a.unidades ? ` · ${formatUnidadeBloco(a.unidades)}` : ""}`,
-                  meta: fmtDate(a.data),
-                  badge: { label: "Urgente", tone: "destructive" },
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <SectionCard title="Avisos do dia" icon={Bell} count={avisosHoje.length} to="/avisos" accent="primary">
-          {avisosHoje.length === 0 ? (
-            <Empty>Nenhum aviso hoje</Empty>
-          ) : (
-            avisosHoje.slice(0, 5).map((a) => {
-              const tone: "destructive" | "warning" | "primary" =
-                a.tipo === "urgente"
-                  ? "destructive"
-                  : a.tipo === "manutencao"
-                    ? "warning"
-                    : "primary";
-              const tipoLabel =
-                a.tipo === "urgente"
-                  ? "Urgente"
-                  : a.tipo === "manutencao"
-                    ? "Manutenção"
-                    : "Informativo";
-              return (
-                <Row
-                  key={a.id}
-                  item={{
-                    id: a.id,
-                    title: `${a.fixado ? "📌 " : ""}${a.titulo ?? a.descricao}`,
-                    subtitle: a.condominios?.nome ?? "",
-                    badge: { label: tipoLabel, tone },
-                  }}
-                />
-              );
-            })
-          )}
-        </SectionCard>
-
-        <SectionCard title="Mudanças do dia" icon={Truck} count={mudancasHoje.length} to="/mudancas" accent="primary">
-          {mudancasHoje.length === 0 ? (
-            <Empty>Nenhuma mudança hoje</Empty>
-          ) : (
-            mudancasHoje.map((m) => (
-              <Row
-                key={m.id}
-                item={{
-                  id: m.id,
-                  title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
-                  subtitle: `${formatUnidadeBloco(m.unidades)}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
-                  badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
-                }}
-              />
-            ))
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="Ocorrências do dia"
-          icon={AlertTriangle}
-          count={ocorrenciasHoje.length}
-          to="/ocorrencias"
-          accent="warning"
-        >
-          {ocorrenciasHoje.length === 0 ? (
-            <Empty>Nenhuma ocorrência hoje</Empty>
-          ) : (
-            ocorrenciasHoje.map((o) => (
-              <Row
-                key={o.id}
-                item={{
-                  id: o.id,
-                  title: `${o.tipo} — ${o.condominios?.nome ?? ""}`,
-                  subtitle: o.descricao,
-                  meta: fmtDateTime(o.created_at),
-                }}
-              />
-            ))
-          )}
-        </SectionCard>
-      </div>
-
-      {/* Chamados resumo */}
-      <div className="bg-card rounded-xl border border-border p-4 sm:p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Wrench className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-semibold text-foreground">Chamados técnicos</h3>
-          </div>
-          <Link to="/chamados" className="text-xs font-medium text-primary hover:underline">Ver tudo</Link>
-        </div>
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="rounded-lg p-3 bg-destructive/10 text-destructive">
-            <div className="text-xs">Pendentes</div>
-            <div className="text-2xl font-bold">{chamadosPendentes.length}</div>
-          </div>
-          <div className="rounded-lg p-3 bg-warning/15 text-warning-foreground">
-            <div className="text-xs">Em andamento</div>
-            <div className="text-2xl font-bold">{chamadosAndamento.length}</div>
-          </div>
-          <div className="rounded-lg p-3 bg-success/15 text-success">
-            <div className="text-xs">Concluídos</div>
-            <div className="text-2xl font-bold">{chamadosConcluidos.length}</div>
-          </div>
-        </div>
-        <div className="space-y-1">
-          {chamadosPendentes.slice(0, 3).map((c) => (
-            <Row
-              key={c.id}
-              item={{
-                id: c.id,
-                title: `${c.categoria} — ${c.condominios?.nome ?? ""}`,
-                subtitle: c.descricao,
-                meta: fmtDateTime(c.data_abertura),
-                badge: { label: "Pendente", tone: "destructive" },
-              }}
-            />
-          ))}
-        </div>
+      {/* Resumo do dia — cards compactos padronizados */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        <StatCard label="Avisos do dia" value={avisosHoje.length} icon={Bell} tone="destructive" to="/avisos" />
+        <StatCard label="Mudanças do dia" value={mudancasHoje.length} icon={Truck} tone="primary" to="/mudancas" />
+        <StatCard label="Ocorrências do dia" value={ocorrenciasHoje.length} icon={AlertTriangle} tone="warning" to="/ocorrencias" />
+        <StatCard label="Chamados técnicos" value={chamadosPendentes.length} icon={Wrench} tone="success" to="/chamados" />
       </div>
     </div>
   );
