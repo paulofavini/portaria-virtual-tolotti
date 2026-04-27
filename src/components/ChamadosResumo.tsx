@@ -46,10 +46,10 @@ export function ChamadosResumo() {
     };
     const list = (chamadosQ.data ?? []) as Array<{
       id: string;
-      titulo: string | null;
+      categoria: string | null;
+      tipo: string | null;
       descricao: string | null;
       status: StatusChamado;
-      prioridade?: string | null;
       data_abertura: string | null;
       condominios: { nome: string } | null;
     }>;
@@ -105,7 +105,7 @@ export function ChamadosResumo() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-                      {c.titulo || "(sem título)"}
+                      {c.categoria || c.tipo || "Chamado"}
                     </h4>
                   </div>
                 </div>
@@ -114,9 +114,9 @@ export function ChamadosResumo() {
                   <span className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5 rounded", statusStyles(c.status))}>
                     {STATUS_LABEL[c.status]}
                   </span>
-                  {c.prioridade && (
+                  {c.tipo && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-warning/15 text-warning-foreground">
-                      <AlertCircle className="h-3 w-3" /> {c.prioridade}
+                      <AlertCircle className="h-3 w-3" /> {c.tipo}
                     </span>
                   )}
                 </div>
