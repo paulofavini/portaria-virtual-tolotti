@@ -302,7 +302,7 @@ function CreateUserDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Administrador (acesso total)</SelectItem>
-                <SelectItem value="operador">Operador / Porteiro</SelectItem>
+                <SelectItem value="operador">Operador</SelectItem>
                 <SelectItem value="sindico">Síndico</SelectItem>
               </SelectContent>
             </Select>
@@ -377,7 +377,7 @@ function EditUserDialog({
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="admin">Administrador</SelectItem>
-                <SelectItem value="operador">Operador / Porteiro</SelectItem>
+                <SelectItem value="operador">Operador</SelectItem>
                 <SelectItem value="sindico">Síndico</SelectItem>
               </SelectContent>
             </Select>
