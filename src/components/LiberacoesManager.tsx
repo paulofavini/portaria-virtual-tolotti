@@ -10,6 +10,11 @@ import {
   Building2,
   KeyRound,
   Calendar as CalendarIcon,
+  Copy,
+  RefreshCw,
+  DoorOpen,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
