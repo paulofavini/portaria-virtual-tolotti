@@ -159,6 +159,156 @@ export type Database = {
           },
         ]
       }
+      condominio_contato_util: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          created_by: string | null
+          empresa: string | null
+          id: string
+          observacoes: string | null
+          telefone: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          created_by?: string | null
+          empresa?: string | null
+          id?: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          created_by?: string | null
+          empresa?: string | null
+          id?: string
+          observacoes?: string | null
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      condominio_info_operacional: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          ddns: string | null
+          id: string
+          ramal_principal: string | null
+          senha_academia: string | null
+          senha_bicicletario: string | null
+          senha_clausura: string | null
+          senha_guarita: string | null
+          senha_portao_subsolo: string | null
+          senha_portao_terreo: string | null
+          updated_at: string
+          updated_by: string | null
+          wifi_rede: string | null
+          wifi_senha: string | null
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          ddns?: string | null
+          id?: string
+          ramal_principal?: string | null
+          senha_academia?: string | null
+          senha_bicicletario?: string | null
+          senha_clausura?: string | null
+          senha_guarita?: string | null
+          senha_portao_subsolo?: string | null
+          senha_portao_terreo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          wifi_rede?: string | null
+          wifi_senha?: string | null
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          ddns?: string | null
+          id?: string
+          ramal_principal?: string | null
+          senha_academia?: string | null
+          senha_bicicletario?: string | null
+          senha_clausura?: string | null
+          senha_guarita?: string | null
+          senha_portao_subsolo?: string | null
+          senha_portao_terreo?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          wifi_rede?: string | null
+          wifi_senha?: string | null
+        }
+        Relationships: []
+      }
+      condominio_ramal_interno: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          numero: string
+          updated_at: string
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          numero: string
+          updated_at?: string
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          numero?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      condominio_senha_historico: {
+        Row: {
+          alterado_em: string
+          alterado_por: string | null
+          campo: string
+          condominio_id: string
+          id: string
+          valor_antigo: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          alterado_em?: string
+          alterado_por?: string | null
+          campo: string
+          condominio_id: string
+          id?: string
+          valor_antigo?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          alterado_em?: string
+          alterado_por?: string | null
+          campo?: string
+          condominio_id?: string
+          id?: string
+          valor_antigo?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: []
+      }
       condominios: {
         Row: {
           bairro: string | null

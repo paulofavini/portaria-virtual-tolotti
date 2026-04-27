@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { MoradoresManager } from "@/components/MoradoresManager";
 import { OcorrenciasPanel } from "@/components/OcorrenciasPanel";
+import { InfoOperacionalPanel } from "@/components/InfoOperacionalPanel";
 import { formatEndereco } from "@/lib/address";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/condominios/$id/")({
@@ -58,34 +60,49 @@ function CondoDetailPage() {
               ) : null
             }
           />
-          {formatEndereco(data) && (
-            <div
-              className="bg-card rounded-xl border border-border p-4 mb-3 flex items-start gap-3"
-              style={{ boxShadow: "var(--shadow-card)" }}
-            >
-              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                <MapPin className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs uppercase tracking-wide text-muted-foreground">Endereço</div>
-                <div className="text-sm text-foreground">{formatEndereco(data)}</div>
-              </div>
-            </div>
-          )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <ContactCard role="Síndico" name={data.sindico_nome} phone={data.sindico_telefone} />
-            <ContactCard role="Subsíndico" name={data.subsindico_nome} phone={data.subsindico_telefone} />
-            <ContactCard role="Zelador" name={data.zelador_nome} phone={data.zelador_telefone} />
-            <ContactCard role="Limpeza" name={data.limpeza_nome} phone={data.limpeza_telefone} />
-          </div>
+          <Tabs defaultValue="geral" className="mt-2">
+            <TabsList>
+              <TabsTrigger value="geral">Geral</TabsTrigger>
+              <TabsTrigger value="operacional">Informações operacionais</TabsTrigger>
+              <TabsTrigger value="moradores">Moradores</TabsTrigger>
+              <TabsTrigger value="ocorrencias">Ocorrências</TabsTrigger>
+            </TabsList>
 
-          <div className="mt-8">
-            <MoradoresManager condominioId={data.id} />
-          </div>
+            <TabsContent value="geral" className="mt-4 space-y-3">
+              {formatEndereco(data) && (
+                <div
+                  className="bg-card rounded-xl border border-border p-4 flex items-start gap-3"
+                  style={{ boxShadow: "var(--shadow-card)" }}
+                >
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs uppercase tracking-wide text-muted-foreground">Endereço</div>
+                    <div className="text-sm text-foreground">{formatEndereco(data)}</div>
+                  </div>
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <ContactCard role="Síndico" name={data.sindico_nome} phone={data.sindico_telefone} />
+                <ContactCard role="Subsíndico" name={data.subsindico_nome} phone={data.subsindico_telefone} />
+                <ContactCard role="Zelador" name={data.zelador_nome} phone={data.zelador_telefone} />
+                <ContactCard role="Limpeza" name={data.limpeza_nome} phone={data.limpeza_telefone} />
+              </div>
+            </TabsContent>
 
-          <div className="mt-8">
-            <OcorrenciasPanel condominioId={data.id} />
-          </div>
+            <TabsContent value="operacional" className="mt-4">
+              <InfoOperacionalPanel condominio={data} />
+            </TabsContent>
+
+            <TabsContent value="moradores" className="mt-4">
+              <MoradoresManager condominioId={data.id} />
+            </TabsContent>
+
+            <TabsContent value="ocorrencias" className="mt-4">
+              <OcorrenciasPanel condominioId={data.id} />
+            </TabsContent>
+          </Tabs>
         </>
       )}
     </div>
