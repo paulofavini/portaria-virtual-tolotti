@@ -35,15 +35,13 @@ import {
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/fornecedores", label: "Liberações", icon: Truck },
   { to: "/avisos", label: "Avisos", icon: Bell },
-  { to: "/eventos", label: "Eventos", icon: PartyPopper },
-  { to: "/mudancas", label: "Mudanças", icon: TruckIcon },
   { to: "/ocorrencias", label: "Ocorrências", icon: AlertTriangle },
   { to: "/chamados", label: "Chamados", icon: Wrench },
   { to: "/solicitacoes", label: "Solicitações", icon: ClipboardList },
   { to: "/condominios", label: "Condomínios", icon: Building2 },
   { to: "/moradores", label: "Moradores", icon: Users },
-  { to: "/fornecedores", label: "Liberações", icon: Truck },
   { to: "/relatorios/ocorrencias", label: "Relatórios", icon: FileBarChart },
 ] as const;
 
