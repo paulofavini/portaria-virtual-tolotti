@@ -360,9 +360,13 @@ export type Database = {
           created_by: string | null
           data_hora: string
           descricao: string
+          documento: string | null
+          finalizada_em: string | null
           id: string
           imagem_url: string | null
           morador_id: string | null
+          nome_pessoa: string | null
+          status: Database["public"]["Enums"]["status_ocorrencia"]
           tipo: string
           unidade_id: string | null
         }
@@ -372,9 +376,13 @@ export type Database = {
           created_by?: string | null
           data_hora?: string
           descricao: string
+          documento?: string | null
+          finalizada_em?: string | null
           id?: string
           imagem_url?: string | null
           morador_id?: string | null
+          nome_pessoa?: string | null
+          status?: Database["public"]["Enums"]["status_ocorrencia"]
           tipo: string
           unidade_id?: string | null
         }
@@ -384,9 +392,13 @@ export type Database = {
           created_by?: string | null
           data_hora?: string
           descricao?: string
+          documento?: string | null
+          finalizada_em?: string | null
           id?: string
           imagem_url?: string | null
           morador_id?: string | null
+          nome_pessoa?: string | null
+          status?: Database["public"]["Enums"]["status_ocorrencia"]
           tipo?: string
           unidade_id?: string | null
         }
@@ -546,6 +558,7 @@ export type Database = {
       app_role: "admin" | "operador" | "sindico"
       prioridade_aviso: "normal" | "urgente"
       status_chamado: "pendente" | "em_andamento" | "concluido"
+      status_ocorrencia: "em_andamento" | "finalizada"
       tipo_chamado: "manutencao" | "ti"
       tipo_mudanca: "entrada" | "saida"
     }
@@ -678,6 +691,7 @@ export const Constants = {
       app_role: ["admin", "operador", "sindico"],
       prioridade_aviso: ["normal", "urgente"],
       status_chamado: ["pendente", "em_andamento", "concluido"],
+      status_ocorrencia: ["em_andamento", "finalizada"],
       tipo_chamado: ["manutencao", "ti"],
       tipo_mudanca: ["entrada", "saida"],
     },

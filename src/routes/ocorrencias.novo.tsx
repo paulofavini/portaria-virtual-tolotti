@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -12,13 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCondominios, useBlocos, useUnidades } from "@/lib/queries";
+import { useCondominios } from "@/lib/queries";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Camera, X, Upload, Loader2 } from "lucide-react";
+import { Camera, X, Upload, Loader2, UserCheck, Package, Wrench, AlertTriangle } from "lucide-react";
+
+type SearchParams = { condominioId?: string };
 
 export const Route = createFileRoute("/ocorrencias/novo")({
+  validateSearch: (s: Record<string, unknown>): SearchParams => ({
+    condominioId: typeof s.condominioId === "string" ? s.condominioId : undefined,
+  }),
   component: () => (
     <RequireAuth>
       <NovaOcorrenciaPage />
@@ -27,33 +34,80 @@ export const Route = createFileRoute("/ocorrencias/novo")({
 });
 
 const TIPOS = [
-  "Incidente",
-  "Barulho",
-  "Vandalismo",
-  "Visitante não autorizado",
-  "Quebra de regra",
-  "Acidente",
-  "Outro",
-];
+  { value: "visitante", label: "Visitante", icon: UserCheck },
+  { value: "entrega", label: "Entrega", icon: Package },
+  { value: "prestador", label: "Prestador de serviço", icon: Wrench },
+  { value: "geral", label: "Ocorrência geral", icon: AlertTriangle },
+] as const;
+
+type TipoValue = (typeof TIPOS)[number]["value"];
 
 function NovaOcorrenciaPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const search = useSearch({ from: "/ocorrencias/novo" });
+  const { user, canManageOperational } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
-  const [tipo, setTipo] = useState(TIPOS[0]);
-  const [descricao, setDescricao] = useState("");
-  const [condominioId, setCondominioId] = useState<string>("");
-  const [blocoId, setBlocoId] = useState<string>("");
+  const [tipo, setTipo] = useState<TipoValue>("visitante");
+  const [nomePessoa, setNomePessoa] = useState("");
+  const [documento, setDocumento] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [condominioId, setCondominioId] = useState<string>(search.condominioId ?? "");
   const [unidadeId, setUnidadeId] = useState<string>("");
+  const [moradorId, setMoradorId] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const condominios = useCondominios();
-  const blocos = useBlocos(condominioId || undefined);
-  const unidades = useUnidades(blocoId || undefined);
+
+  // Lista plana de unidades do condomínio (bloco/numero)
+  const { data: unidades } = useQuery({
+    queryKey: ["unidades-flat", condominioId],
+    enabled: !!condominioId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unidades")
+        .select("id, numero, blocos!inner(id, nome, condominio_id)")
+        .eq("blocos.condominio_id", condominioId)
+        .order("numero");
+      if (error) throw error;
+      return data as unknown as Array<{
+        id: string;
+        numero: string;
+        blocos: { id: string; nome: string; condominio_id: string };
+      }>;
+    },
+  });
+
+  const { data: moradores } = useQuery({
+    queryKey: ["moradores-flat", condominioId, unidadeId],
+    enabled: !!condominioId,
+    queryFn: async () => {
+      let q = supabase
+        .from("moradores")
+        .select("id, nome, unidade_id, unidades!inner(id, numero, blocos!inner(condominio_id, nome))")
+        .eq("unidades.blocos.condominio_id", condominioId)
+        .order("nome");
+      if (unidadeId) q = q.eq("unidade_id", unidadeId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as unknown as Array<{
+        id: string;
+        nome: string;
+        unidade_id: string;
+        unidades: { id: string; numero: string; blocos: { nome: string } };
+      }>;
+    },
+  });
+
+  // Auto-fill nome quando seleciona morador
+  useEffect(() => {
+    if (!moradorId || nomePessoa.trim()) return;
+    const m = moradores?.find((x) => x.id === moradorId);
+    if (m) setNomePessoa(m.nome);
+  }, [moradorId, moradores, nomePessoa]);
 
   const handleFile = (f: File | null) => {
     if (!f) {
@@ -61,49 +115,55 @@ function NovaOcorrenciaPage() {
       setPreviewUrl(null);
       return;
     }
-    if (!f.type.startsWith("image/")) {
-      toast.error("Selecione uma imagem válida");
-      return;
-    }
-    if (f.size > 10 * 1024 * 1024) {
-      toast.error("Imagem deve ter no máximo 10 MB");
-      return;
-    }
+    if (!f.type.startsWith("image/")) return toast.error("Selecione uma imagem válida");
+    if (f.size > 10 * 1024 * 1024) return toast.error("Imagem deve ter no máximo 10 MB");
     setFile(f);
     setPreviewUrl(URL.createObjectURL(f));
   };
 
+  const tipoLabel = useMemo(
+    () => TIPOS.find((t) => t.value === tipo)?.label ?? tipo,
+    [tipo],
+  );
+
   const submit = async () => {
-    if (!condominioId) {
-      toast.error("Selecione o condomínio");
+    if (!canManageOperational) {
+      toast.error("Sem permissão para registrar ocorrências");
       return;
     }
-    if (!descricao.trim()) {
-      toast.error("Descreva a ocorrência");
-      return;
-    }
+    if (!condominioId) return toast.error("Selecione o condomínio");
+    if (!nomePessoa.trim() && tipo !== "geral")
+      return toast.error("Informe o nome da pessoa");
+    if (tipo === "geral" && !observacao.trim())
+      return toast.error("Descreva a ocorrência");
+
     setBusy(true);
     try {
       let imagem_url: string | null = null;
-
       if (file) {
         const ext = file.name.split(".").pop() || "jpg";
         const path = `${user?.id ?? "anon"}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("ocorrencias").upload(path, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+        const { error: upErr } = await supabase.storage
+          .from("ocorrencias")
+          .upload(path, file, { contentType: file.type, upsert: false });
         if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from("ocorrencias").getPublicUrl(path);
-        imagem_url = pub.publicUrl;
+        imagem_url = supabase.storage.from("ocorrencias").getPublicUrl(path).data.publicUrl;
       }
+
+      const descricao =
+        observacao.trim() ||
+        (nomePessoa.trim() ? `${tipoLabel}: ${nomePessoa.trim()}` : tipoLabel);
 
       const { error } = await supabase.from("ocorrencias").insert({
         tipo,
-        descricao: descricao.trim(),
+        descricao,
+        nome_pessoa: nomePessoa.trim() || null,
+        documento: documento.trim() || null,
         condominio_id: condominioId,
         unidade_id: unidadeId || null,
+        morador_id: moradorId || null,
         imagem_url,
+        status: "em_andamento",
         created_by: user?.id ?? null,
       });
       if (error) throw error;
@@ -118,51 +178,122 @@ function NovaOcorrenciaPage() {
 
   return (
     <div className="pb-24 max-w-2xl">
-      <PageHeader title="Nova ocorrência" description="Registre rapidamente o que foi observado." />
+      <PageHeader title="Nova ocorrência" description="Registro rápido para portaria." />
 
-      <div className="bg-card rounded-xl border border-border p-4 sm:p-6 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div
+        className="bg-card rounded-xl border border-border p-4 sm:p-6 space-y-4"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        {/* Tipo: chips */}
         <div>
-          <Label>Tipo</Label>
-          <Select value={tipo} onValueChange={setTipo}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {TIPOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <Label>Tipo *</Label>
+          <div className="grid grid-cols-2 gap-2 mt-1.5">
+            {TIPOS.map((t) => {
+              const Icon = t.icon;
+              const active = tipo === t.value;
+              return (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setTipo(t.value)}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card hover:bg-muted text-foreground/80"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div>
-          <Label>Condomínio</Label>
-          <Select value={condominioId} onValueChange={(v) => { setCondominioId(v); setBlocoId(""); setUnidadeId(""); }}>
-            <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+          <Label>Condomínio *</Label>
+          <Select
+            value={condominioId}
+            onValueChange={(v) => {
+              setCondominioId(v);
+              setUnidadeId("");
+              setMoradorId("");
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
             <SelectContent>
               {(condominios.data ?? []).map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                <SelectItem key={c.id} value={c.id}>
+                  {c.nome}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {condominioId && (blocos.data?.length ?? 0) > 0 && (
-          <div className="grid grid-cols-2 gap-3">
+        {tipo !== "geral" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label>Bloco (opcional)</Label>
-              <Select value={blocoId} onValueChange={(v) => { setBlocoId(v); setUnidadeId(""); }}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Label>Nome da pessoa *</Label>
+              <Input
+                value={nomePessoa}
+                onChange={(e) => setNomePessoa(e.target.value)}
+                placeholder="Ex.: João Silva"
+                autoFocus
+              />
+            </div>
+            <div>
+              <Label>Documento (opcional)</Label>
+              <Input
+                value={documento}
+                onChange={(e) => setDocumento(e.target.value)}
+                placeholder="RG / CPF / placa"
+              />
+            </div>
+          </div>
+        )}
+
+        {condominioId && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label>Unidade</Label>
+              <Select
+                value={unidadeId || "_none"}
+                onValueChange={(v) => {
+                  setUnidadeId(v === "_none" ? "" : v);
+                  setMoradorId("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
-                  {(blocos.data ?? []).map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>
+                  <SelectItem value="_none">— sem unidade —</SelectItem>
+                  {(unidades ?? []).map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      Bl. {u.blocos.nome} · {u.numero}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Unidade (opcional)</Label>
-              <Select value={unidadeId} onValueChange={setUnidadeId} disabled={!blocoId}>
-                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+              <Label>Morador (opcional)</Label>
+              <Select
+                value={moradorId || "_none"}
+                onValueChange={(v) => setMoradorId(v === "_none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="—" />
+                </SelectTrigger>
                 <SelectContent>
-                  {(unidades.data ?? []).map((u) => (
-                    <SelectItem key={u.id} value={u.id}>{u.numero}</SelectItem>
+                  <SelectItem value="_none">— nenhum —</SelectItem>
+                  {(moradores ?? []).map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.nome} · Bl. {m.unidades.blocos.nome}/{m.unidades.numero}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -171,8 +302,13 @@ function NovaOcorrenciaPage() {
         )}
 
         <div>
-          <Label>Descrição</Label>
-          <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} rows={4} placeholder="Detalhe o ocorrido..." />
+          <Label>Observação {tipo === "geral" ? "*" : "(opcional)"}</Label>
+          <Textarea
+            value={observacao}
+            onChange={(e) => setObservacao(e.target.value)}
+            rows={3}
+            placeholder="Detalhes adicionais..."
+          />
         </div>
 
         <div>
@@ -220,7 +356,13 @@ function NovaOcorrenciaPage() {
             Cancelar
           </Button>
           <Button onClick={submit} disabled={busy}>
-            {busy ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Salvando...</> : "Registrar ocorrência"}
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Salvando...
+              </>
+            ) : (
+              "Registrar ocorrência"
+            )}
           </Button>
         </div>
       </div>
