@@ -178,6 +178,189 @@ function generateKeyword(format: "numeric" | "alpha", length = 6): string {
   return out;
 }
 
+function formatTimestamp(iso?: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+type SectionTone = "today" | "periodo" | "permanente";
+
+function Section({
+  title,
+  icon,
+  tone,
+  count,
+  empty,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  tone: SectionTone;
+  count: number;
+  empty: string;
+  children: React.ReactNode;
+}) {
+  const headerBg =
+    tone === "today"
+      ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/40"
+      : tone === "periodo"
+      ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/40"
+      : "bg-muted/40";
+  return (
+    <section className="bg-card border rounded-xl overflow-hidden">
+      <header
+        className={cn(
+          "flex items-center justify-between px-4 py-2.5 border-b",
+          headerBg,
+        )}
+      >
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          {icon}
+          <span>{title}</span>
+        </div>
+        <Badge variant="outline" className="text-xs">
+          {count}
+        </Badge>
+      </header>
+      {count === 0 ? (
+        <div className="px-4 py-6 text-center text-sm text-muted-foreground">{empty}</div>
+      ) : (
+        <div className="divide-y">{children}</div>
+      )}
+    </section>
+  );
+}
+
+function LiberacaoRowItem({
+  r,
+  tone,
+  condoMap,
+  profileMap,
+  canManage,
+  onGrant,
+  grantPending,
+  onEdit,
+  onRevoke,
+  onCopyKey,
+}: {
+  r: LiberacaoRow;
+  tone: SectionTone;
+  condoMap: Map<string, string>;
+  profileMap: Map<string, string>;
+  canManage: boolean;
+  onGrant: () => void;
+  grantPending: boolean;
+  onEdit: () => void;
+  onRevoke: () => void;
+  onCopyKey: () => void;
+}) {
+  const autor =
+    r.origem === "morador"
+      ? r.autorizador_morador_nome ?? "Morador"
+      : r.origem === "sindico"
+      ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
+      : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
+  const alertKind = expiryAlert(r);
+  const wasEdited =
+    !!r.updated_at && !!r.created_at && r.updated_at.slice(0, 19) !== r.created_at.slice(0, 19);
+  const criadoPor = r.created_by ? profileMap.get(r.created_by) ?? "—" : "—";
+  const rowBg = tone === "today" ? "bg-red-50/40 dark:bg-red-950/10" : "";
+
+  return (
+    <div className={cn("px-4 py-3 grid gap-3 md:grid-cols-12 items-start", rowBg)}>
+      {/* Visitante */}
+      <div className="md:col-span-3">
+        <div className="font-medium">{r.visitante_nome}</div>
+        <div className="text-xs text-muted-foreground">{r.visitante_documento}</div>
+        <div className="text-xs text-muted-foreground capitalize mt-0.5">{r.tipo_visita}</div>
+      </div>
+
+      {/* Condomínio + Autor */}
+      <div className="md:col-span-3 text-sm">
+        <div className="inline-flex items-center gap-1.5">
+          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+          {condoMap.get(r.condominio_id) ?? "—"}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">Autorizado por: {autor}</div>
+      </div>
+
+      {/* Validade + Palavra-chave */}
+      <div className="md:col-span-3 text-sm">
+        <div className="inline-flex items-center gap-1.5">
+          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+          {validadeTexto(r)}
+        </div>
+        {alertKind === "today" && (
+          <div className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600 mt-1">
+            <AlertTriangle className="h-3 w-3" /> Expira hoje
+          </div>
+        )}
+        {alertKind === "soon" && (
+          <div className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 mt-1">
+            <Clock className="h-3 w-3" /> Expira em breve
+          </div>
+        )}
+        <div className="mt-1">
+          {r.palavra_chave ? (
+            <button
+              type="button"
+              onClick={onCopyKey}
+              className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
+              title="Copiar palavra-chave"
+            >
+              <KeyRound className="h-3 w-3" /> {r.palavra_chave}
+              <Copy className="h-3 w-3 opacity-60" />
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">Sem palavra-chave</span>
+          )}
+        </div>
+      </div>
+
+      {/* Status + Ações */}
+      <div className="md:col-span-3 flex flex-col items-start md:items-end gap-2">
+        {statusBadge(r.status)}
+        {canManage && (
+          <div className="inline-flex gap-1 items-center">
+            {r.status === "ativa" && (
+              <Button
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
+                onClick={onGrant}
+                disabled={grantPending}
+                title="Liberar acesso agora"
+              >
+                <DoorOpen className="h-4 w-4" /> Liberar
+              </Button>
+            )}
+            <Button size="icon" variant="ghost" onClick={onEdit} title="Editar">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            {r.status !== "revogada" && (
+              <Button size="icon" variant="ghost" onClick={onRevoke} title="Revogar">
+                <ShieldOff className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Auditoria */}
+      <div className="md:col-span-12 text-[11px] text-muted-foreground border-t pt-2 flex flex-wrap gap-x-4 gap-y-0.5">
+        <span>Criado por: <span className="font-medium text-foreground/80">{criadoPor}</span></span>
+        <span>Data/Hora: {formatTimestamp(r.created_at)}</span>
+        {wasEdited && <span>Última alteração: {formatTimestamp(r.updated_at)}</span>}
+      </div>
+    </div>
+  );
+}
+
 export function LiberacoesManager() {
   const qc = useQueryClient();
   const { canManageOperational } = useAuth();
