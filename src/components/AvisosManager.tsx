@@ -233,7 +233,12 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
           )}
           style={{ boxShadow: "var(--shadow-card)" }}
         >
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Urgentes</div>
+          <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            {totalUrgentes > 0 && (
+              <AlertTriangle className="h-3.5 w-3.5 text-destructive animate-pulse" />
+            )}
+            Urgentes
+          </div>
           <div className={cn(
             "text-2xl font-bold",
             totalUrgentes > 0 ? "text-destructive" : "text-foreground",
