@@ -10,6 +10,11 @@ import {
   Building2,
   KeyRound,
   Calendar as CalendarIcon,
+  Copy,
+  RefreshCw,
+  DoorOpen,
+  AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -118,15 +123,57 @@ function formatDate(d?: string | null) {
 }
 
 function statusBadge(s: Status) {
-  if (s === "ativa") return <Badge className="bg-emerald-600 hover:bg-emerald-600">Ativa</Badge>;
-  if (s === "expirada") return <Badge variant="secondary">Expirada</Badge>;
-  return <Badge variant="destructive">Revogada</Badge>;
+  if (s === "ativa")
+    return (
+      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white border-transparent">
+        Ativa
+      </Badge>
+    );
+  if (s === "expirada")
+    return (
+      <Badge className="bg-red-600 hover:bg-red-600 text-white border-transparent">
+        Expirada
+      </Badge>
+    );
+  return (
+    <Badge className="bg-zinc-500 hover:bg-zinc-500 text-white border-transparent">
+      Revogada
+    </Badge>
+  );
 }
 
 function validadeTexto(r: LiberacaoRow) {
   if (r.tipo_validade === "permanente") return "Permanente";
   if (r.tipo_validade === "unica") return "Única";
   return `${formatDate(r.data_inicio)} → ${formatDate(r.data_fim)}`;
+}
+
+/** Returns 'today', 'soon' (<= 3 days) or null. Only meaningful for active 'periodo' liberações. */
+function expiryAlert(r: LiberacaoRow): "today" | "soon" | null {
+  if (r.status !== "ativa" || r.tipo_validade !== "periodo" || !r.data_fim) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(`${r.data_fim}T00:00:00`);
+  const diffDays = Math.round((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "today";
+  if (diffDays > 0 && diffDays <= 3) return "soon";
+  return null;
+}
+
+function generateKeyword(format: "numeric" | "alpha", length = 6): string {
+  const charset =
+    format === "numeric"
+      ? "0123456789"
+      : "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I para evitar confusão
+  const bytes = new Uint8Array(length);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  let out = "";
+  for (let i = 0; i < length; i++) out += charset[bytes[i] % charset.length];
+  return out;
 }
 
 export function LiberacoesManager() {
@@ -187,8 +234,8 @@ export function LiberacoesManager() {
       if (filterFrom && r.created_at < filterFrom) return false;
       if (filterTo && r.created_at > `${filterTo}T23:59:59`) return false;
       if (search) {
-        const s = search.toLowerCase();
-        const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
+        const s = search.trim().toLowerCase();
+        const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.palavra_chave ?? ""} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
         if (!hay.includes(s)) return false;
       }
       return true;
@@ -302,6 +349,29 @@ export function LiberacoesManager() {
     onError: (e: any) => toast.error(e.message ?? "Erro ao revogar."),
   });
 
+  const grantMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("liberacao_acessos" as any)
+        .insert({ liberacao_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Acesso liberado e registrado.");
+      qc.invalidateQueries({ queryKey: ["liberacoes"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao registrar acesso."),
+  });
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Palavra-chave copiada.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -309,7 +379,7 @@ export function LiberacoesManager() {
         <div className="md:col-span-2 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por visitante, documento, autorizador…"
+            placeholder="Buscar por visitante, documento ou palavra-chave…"
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -386,6 +456,7 @@ export function LiberacoesManager() {
                     : r.origem === "sindico"
                     ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
                     : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
+                const alert = expiryAlert(r);
                 return (
                   <tr key={r.id} className="border-t">
                     <td className="px-4 py-3">
@@ -401,16 +472,34 @@ export function LiberacoesManager() {
                     </td>
                     <td className="px-4 py-3">{autor}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5">
-                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {validadeTexto(r)}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1.5">
+                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {validadeTexto(r)}
+                        </span>
+                        {alert === "today" && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600">
+                            <AlertTriangle className="h-3 w-3" /> Expira hoje
+                          </span>
+                        )}
+                        {alert === "soon" && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600">
+                            <Clock className="h-3 w-3" /> Expira em breve
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       {r.palavra_chave ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(r.palavra_chave!)}
+                          className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
+                          title="Copiar palavra-chave"
+                        >
                           <KeyRound className="h-3 w-3" /> {r.palavra_chave}
-                        </span>
+                          <Copy className="h-3 w-3 opacity-60" />
+                        </button>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -418,7 +507,19 @@ export function LiberacoesManager() {
                     <td className="px-4 py-3">{statusBadge(r.status)}</td>
                     <td className="px-4 py-3 text-right">
                       {canManage && (
-                        <div className="inline-flex gap-1">
+                        <div className="inline-flex gap-1 items-center">
+                          {r.status === "ativa" && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
+                              onClick={() => grantMutation.mutate(r.id)}
+                              disabled={grantMutation.isPending}
+                              title="Liberar acesso agora"
+                            >
+                              <DoorOpen className="h-4 w-4" /> Liberar
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -644,11 +745,49 @@ export function LiberacoesManager() {
               </div>
               <div className="space-y-1.5">
                 <Label>Palavra-chave (opcional)</Label>
-                <Input
-                  value={form.palavra_chave}
-                  onChange={(e) => setForm((f) => ({ ...f, palavra_chave: e.target.value }))}
-                  placeholder="Validação na portaria"
-                />
+                <div className="flex gap-1.5">
+                  <Input
+                    value={form.palavra_chave}
+                    onChange={(e) => setForm((f) => ({ ...f, palavra_chave: e.target.value }))}
+                    placeholder="Validação na portaria"
+                    className="font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Gerar numérica (6 dígitos)"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, palavra_chave: generateKeyword("numeric", 6) }))
+                    }
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Gerar alfanumérica (6 caracteres)"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, palavra_chave: generateKeyword("alpha", 6) }))
+                    }
+                  >
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Copiar"
+                    disabled={!form.palavra_chave}
+                    onClick={() => copyToClipboard(form.palavra_chave)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Use os botões para gerar numérica, alfanumérica ou copiar.
+                </p>
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <Label>Observações</Label>
