@@ -29,7 +29,8 @@ import { useCondominios } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import {
   exportCSV,
-  exportPDF,
+  generateReportPDF,
+  type ReportFilter,
   fmtDate,
   fmtDateTime,
   type Column,
@@ -173,14 +174,15 @@ function OperacionalSection() {
   };
   const handleExportPDF = () => {
     if (!filtered.length) return toast.error("Nenhum registro para exportar");
-    exportPDF(
-      `relatorio_${reportType}_${stamp()}`,
-      `Relatório — ${OP_LABELS[reportType]}`,
+    const { condominio, filters } = buildMeta(condominios, condominioId, dataInicio, dataFim, statusFiltro);
+    generateReportPDF({
+      filename: `relatorio_${reportType}_${stamp()}`,
+      title: `Relatório — ${OP_LABELS[reportType]}`,
       columns,
-      filtered,
-      buildMeta(condominios, condominioId, dataInicio, dataFim),
-    );
-    toast.success(`PDF gerado com ${filtered.length} registro(s)`);
+      data: filtered,
+      condominio,
+      filters,
+    }).then(() => toast.success(`PDF gerado com ${filtered.length} registro(s)`));
   };
 
   return (
