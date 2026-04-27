@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           data: string
+          data_expiracao: string | null
           descricao: string
           fixado: boolean
           id: string
@@ -35,6 +36,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data: string
+          data_expiracao?: string | null
           descricao: string
           fixado?: boolean
           id?: string
@@ -49,6 +51,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data?: string
+          data_expiracao?: string | null
           descricao?: string
           fixado?: boolean
           id?: string
