@@ -182,8 +182,10 @@ function Dashboard() {
   const ocorrencias = useOcorrencias();
   const chamados = useChamados();
 
-  const avisosUrgentes = (avisos.data ?? []).filter((a) => a.prioridade === "urgente" && (isToday(a.data) || isFuture(a.data)));
-  const avisosHoje = (avisos.data ?? []).filter((a) => isToday(a.data));
+  // useAvisos já filtra ativo=true e remove expirados, e ordena por fixado/created_at
+  const avisosAtivos = avisos.data ?? [];
+  const avisosUrgentes = avisosAtivos.filter((a) => a.tipo === "urgente");
+  const avisosHoje = avisosAtivos.filter((a) => isToday(a.data));
 
   const eventosHoje = (eventos.data ?? []).filter((e) => isToday(e.data));
   const eventosFuturos = (eventos.data ?? []).filter((e) => isFuture(e.data)).slice(0, 5);
@@ -230,7 +232,7 @@ function Dashboard() {
                 key={a.id}
                 item={{
                   id: a.id,
-                  title: a.descricao,
+                  title: `${a.fixado ? "📌 " : ""}${a.titulo ?? a.descricao}`,
                   subtitle: `${a.condominios?.nome ?? ""}${a.unidades ? ` · Bloco ${a.unidades.blocos?.nome} / Unidade ${a.unidades.numero}` : ""}`,
                   meta: fmtDate(a.data),
                   badge: { label: "Urgente", tone: "destructive" },
@@ -244,22 +246,33 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SectionCard title="Avisos do dia" icon={Bell} count={avisosHoje.length} to="/avisos" accent="primary">
           {avisosHoje.length === 0 ? (
-            <Empty>Nenhum aviso para hoje.</Empty>
+            <Empty>Nenhum aviso para hoje</Empty>
           ) : (
-            avisosHoje.slice(0, 5).map((a) => (
-              <Row
-                key={a.id}
-                item={{
-                  id: a.id,
-                  title: a.descricao,
-                  subtitle: a.condominios?.nome ?? "",
-                  badge:
-                    a.prioridade === "urgente"
-                      ? { label: "Urgente", tone: "destructive" }
-                      : undefined,
-                }}
-              />
-            ))
+            avisosHoje.slice(0, 5).map((a) => {
+              const tone: "destructive" | "warning" | "primary" =
+                a.tipo === "urgente"
+                  ? "destructive"
+                  : a.tipo === "manutencao"
+                    ? "warning"
+                    : "primary";
+              const tipoLabel =
+                a.tipo === "urgente"
+                  ? "Urgente"
+                  : a.tipo === "manutencao"
+                    ? "Manutenção"
+                    : "Informativo";
+              return (
+                <Row
+                  key={a.id}
+                  item={{
+                    id: a.id,
+                    title: `${a.fixado ? "📌 " : ""}${a.titulo ?? a.descricao}`,
+                    subtitle: a.condominios?.nome ?? "",
+                    badge: { label: tipoLabel, tone },
+                  }}
+                />
+              );
+            })
           )}
         </SectionCard>
 
