@@ -170,3 +170,19 @@
     color: var(--color-foreground);
   }
 }
+
+/*
+ * Prevent horizontal scrollbar caused by Radix scroll-lock compensation
+ * (body[data-scroll-locked] adds margin-right to offset the hidden scrollbar,
+ * which can produce overflow on layouts that already span the viewport).
+ */
+html,
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body[data-scroll-locked] {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+}
