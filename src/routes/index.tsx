@@ -344,6 +344,50 @@ function Dashboard() {
           )}
         </SectionCard>
 
+        {/* Últimas mudanças passadas — contexto histórico discreto */}
+        <div
+          className="bg-card rounded-xl border border-border overflow-hidden opacity-90"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <div className="h-1 bg-muted" />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-muted-foreground" />
+                <h3 className="font-semibold text-foreground/80">Últimas mudanças</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  {mudancasPassadas.length}
+                </span>
+              </div>
+              <Link
+                to="/mudancas"
+                search={{ periodo: "passadas" }}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Ver mais
+              </Link>
+            </div>
+            {mudancasPassadas.length === 0 ? (
+              <Empty>Sem mudanças anteriores.</Empty>
+            ) : (
+              <div className="space-y-1 opacity-80">
+                {mudancasPassadas.map((m) => (
+                  <Row
+                    key={`past-${m.id}`}
+                    item={{
+                      id: m.id,
+                      title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
+                      subtitle: `Bloco ${m.unidades?.blocos?.nome} / Unidade ${m.unidades?.numero}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
+                      meta: fmtDate(m.data),
+                      badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <SectionCard title="Ocorrências de hoje" icon={AlertTriangle} count={ocorrenciasHoje.length} to="/ocorrencias" accent="warning">
           {ocorrenciasHoje.length === 0 ? (
             <Empty>Nenhuma ocorrência hoje.</Empty>
