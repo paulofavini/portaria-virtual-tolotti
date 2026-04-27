@@ -17,6 +17,7 @@ import {
   Search,
   UserCog,
   FileBarChart,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ const NAV = [
   { to: "/mudancas", label: "Mudanças", icon: TruckIcon },
   { to: "/ocorrencias", label: "Ocorrências", icon: AlertTriangle },
   { to: "/chamados", label: "Chamados", icon: Wrench },
+  { to: "/solicitacoes", label: "Solicitações", icon: ClipboardList },
   { to: "/condominios", label: "Condomínios", icon: Building2 },
   { to: "/moradores", label: "Moradores", icon: Users },
   { to: "/fornecedores", label: "Fornecedores", icon: Truck },

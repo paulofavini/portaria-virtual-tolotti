@@ -524,6 +524,42 @@ export type Database = {
           },
         ]
       }
+      orientacoes: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          created_by: string | null
+          fixado: boolean
+          id: string
+          mensagem: string
+          origem: Database["public"]["Enums"]["origem_orientacao"] | null
+          tipo: Database["public"]["Enums"]["tipo_orientacao"]
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          fixado?: boolean
+          id?: string
+          mensagem: string
+          origem?: Database["public"]["Enums"]["origem_orientacao"] | null
+          tipo?: Database["public"]["Enums"]["tipo_orientacao"]
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          created_by?: string | null
+          fixado?: boolean
+          id?: string
+          mensagem?: string
+          origem?: Database["public"]["Enums"]["origem_orientacao"] | null
+          tipo?: Database["public"]["Enums"]["tipo_orientacao"]
+          titulo?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -547,6 +583,69 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      solicitacoes: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          created_by: string | null
+          data_conclusao: string | null
+          data_solicitacao: string
+          descricao: string
+          id: string
+          morador_nome: string | null
+          pago: boolean
+          status: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+          unidade_id: string | null
+          valor: number | null
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          data_solicitacao?: string
+          descricao: string
+          id?: string
+          morador_nome?: string | null
+          pago?: boolean
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+          unidade_id?: string | null
+          valor?: number | null
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          data_solicitacao?: string
+          descricao?: string
+          id?: string
+          morador_nome?: string | null
+          pago?: boolean
+          status?: Database["public"]["Enums"]["status_solicitacao"]
+          tipo?: Database["public"]["Enums"]["tipo_solicitacao"]
+          unidade_id?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_condominio_id_fkey"
+            columns: ["condominio_id"]
+            isOneToOne: false
+            referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unidades: {
         Row: {
@@ -654,12 +753,20 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operador" | "sindico"
+      origem_orientacao: "interna" | "sindico" | "morador"
       prioridade_aviso: "normal" | "urgente"
       status_chamado: "pendente" | "em_andamento" | "concluido"
       status_ocorrencia: "em_andamento" | "finalizada"
+      status_solicitacao:
+        | "pendente"
+        | "em_andamento"
+        | "concluido"
+        | "cancelado"
       tipo_aviso: "informativo" | "urgente" | "manutencao"
       tipo_chamado: "manutencao" | "ti"
       tipo_mudanca: "entrada" | "saida"
+      tipo_orientacao: "informativo" | "alerta" | "urgente"
+      tipo_solicitacao: "tag" | "controle" | "imagens" | "acesso" | "outros"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -788,12 +895,21 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "sindico"],
+      origem_orientacao: ["interna", "sindico", "morador"],
       prioridade_aviso: ["normal", "urgente"],
       status_chamado: ["pendente", "em_andamento", "concluido"],
       status_ocorrencia: ["em_andamento", "finalizada"],
+      status_solicitacao: [
+        "pendente",
+        "em_andamento",
+        "concluido",
+        "cancelado",
+      ],
       tipo_aviso: ["informativo", "urgente", "manutencao"],
       tipo_chamado: ["manutencao", "ti"],
       tipo_mudanca: ["entrada", "saida"],
+      tipo_orientacao: ["informativo", "alerta", "urgente"],
+      tipo_solicitacao: ["tag", "controle", "imagens", "acesso", "outros"],
     },
   },
 } as const

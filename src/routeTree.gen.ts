@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
+import { Route as SolicitacoesRouteImport } from './routes/solicitacoes'
 import { Route as OcorrenciasRouteImport } from './routes/ocorrencias'
 import { Route as MudancasRouteImport } from './routes/mudancas'
 import { Route as MoradoresRouteImport } from './routes/moradores'
@@ -35,6 +36,11 @@ import { Route as CondominiosIdEditarRouteImport } from './routes/condominios.$i
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolicitacoesRoute = SolicitacoesRouteImport.update({
+  id: '/solicitacoes',
+  path: '/solicitacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OcorrenciasRoute = OcorrenciasRouteImport.update({
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
     | '/chamados/novo'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
     | '/chamados/novo'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
     | '/chamados/novo'
@@ -298,6 +310,7 @@ export interface RootRouteChildren {
   MoradoresRoute: typeof MoradoresRoute
   MudancasRoute: typeof MudancasRouteWithChildren
   OcorrenciasRoute: typeof OcorrenciasRouteWithChildren
+  SolicitacoesRoute: typeof SolicitacoesRoute
   UsuariosRoute: typeof UsuariosRoute
   RelatoriosOcorrenciasRoute: typeof RelatoriosOcorrenciasRoute
 }
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/usuarios'
       fullPath: '/usuarios'
       preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solicitacoes': {
+      id: '/solicitacoes'
+      path: '/solicitacoes'
+      fullPath: '/solicitacoes'
+      preLoaderRoute: typeof SolicitacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ocorrencias': {
@@ -560,6 +580,7 @@ const rootRouteChildren: RootRouteChildren = {
   MoradoresRoute: MoradoresRoute,
   MudancasRoute: MudancasRouteWithChildren,
   OcorrenciasRoute: OcorrenciasRouteWithChildren,
+  SolicitacoesRoute: SolicitacoesRoute,
   UsuariosRoute: UsuariosRoute,
   RelatoriosOcorrenciasRoute: RelatoriosOcorrenciasRoute,
 }
