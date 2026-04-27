@@ -51,3 +51,17 @@ export function formatEndereco(c: {
   if (c.cep) parts.push(`CEP ${c.cep}`);
   return parts.join(" · ");
 }
+
+/**
+ * Padrão visual unificado para exibição de unidade/bloco em todo o sistema.
+ * Ordem: UNIDADE primeiro, BLOCO depois, separados por "•".
+ * Ex.: "Unidade 92 • Bloco A"
+ */
+export function formatUnidadeBloco(
+  unidade?: { numero?: string | null; blocos?: { nome?: string | null } | null } | null,
+): string {
+  if (!unidade?.numero) return "";
+  const base = `Unidade ${unidade.numero}`;
+  const bloco = unidade.blocos?.nome;
+  return bloco ? `${base} • Bloco ${bloco}` : base;
+}
