@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -26,11 +25,7 @@ export const Route = createFileRoute("/ocorrencias/novo")({
   validateSearch: (s: Record<string, unknown>): SearchParams => ({
     condominioId: typeof s.condominioId === "string" ? s.condominioId : undefined,
   }),
-  component: () => (
-    <RequireAuth>
-      <NovaOcorrenciaPage />
-    </RequireAuth>
-  ),
+  component: NovaOcorrenciaPage,
 });
 
 const TIPOS = [
