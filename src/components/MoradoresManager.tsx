@@ -513,6 +513,27 @@ function MoradorDialog({
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="m_vaga">Vaga</Label>
+              <Input
+                id="m_vaga"
+                value={vaga}
+                onChange={(e) => setVaga(e.target.value)}
+                placeholder="Ex.: 12"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="m_subsolo">Subsolo</Label>
+              <Input
+                id="m_subsolo"
+                value={subsolo}
+                onChange={(e) => setSubsolo(e.target.value)}
+                placeholder="Ex.: -1"
+              />
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center justify-between mb-2">
               <Label>Veículos</Label>
