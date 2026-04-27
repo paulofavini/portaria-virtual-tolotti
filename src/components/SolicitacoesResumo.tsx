@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ClipboardList, ChevronRight, CircleDollarSign, Clock } from "lucide-react";
+import { ClipboardList, ChevronRight, CircleDollarSign, Clock, Building2, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type TipoSolicitacao = "tag" | "controle" | "imagens" | "acesso" | "outros";
@@ -52,6 +53,21 @@ export function SolicitacoesResumo() {
   const naoPagos = useMemo(() => items.filter((s) => !s.pago), [items]);
   const total = items.length;
 
+  // Ordena: pendente primeiro, depois em_andamento; dentro de cada grupo, mais recente primeiro.
+  const ordered = useMemo(() => {
+    const rank: Record<StatusSolicitacao, number> = {
+      pendente: 0,
+      em_andamento: 1,
+      concluido: 2,
+      cancelado: 3,
+    };
+    return [...items].sort((a, b) => {
+      const r = rank[a.status] - rank[b.status];
+      if (r !== 0) return r;
+      return (b.data_solicitacao ?? "").localeCompare(a.data_solicitacao ?? "");
+    });
+  }, [items]);
+
   const accent = pendentes.length > 0 ? "bg-destructive" : naoPagos.length > 0 ? "bg-warning" : "bg-primary";
   const containerTone =
     pendentes.length > 0
@@ -90,50 +106,86 @@ export function SolicitacoesResumo() {
 
         {q.isLoading ? (
           <div className="text-sm text-muted-foreground py-3 text-center">Carregando...</div>
-        ) : items.length === 0 ? (
-          <div className="text-sm text-muted-foreground py-3 text-center border border-dashed border-border rounded-lg">
-            Nenhuma solicitação pendente.
+        ) : ordered.length === 0 ? (
+          <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border rounded-lg">
+            Nenhuma solicitação no momento
           </div>
         ) : (
-          <div className="space-y-1">
-            {items.slice(0, 5).map((s) => {
-              const isPendente = s.status === "pendente";
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto pr-1">
+            {ordered.map((s) => {
+              const statusInfo =
+                s.status === "pendente"
+                  ? { label: "Pendente", cls: "bg-destructive text-destructive-foreground" }
+                  : s.status === "em_andamento"
+                    ? { label: "Em andamento", cls: "bg-amber-500 text-white" }
+                    : s.status === "concluido"
+                      ? { label: "Concluída", cls: "bg-success text-success-foreground" }
+                      : { label: "Cancelada", cls: "bg-muted text-muted-foreground" };
               return (
-                <Link
+                <div
                   key={s.id}
-                  to="/solicitacoes"
-                  className="flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors"
+                  style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-foreground truncate">
+                  <div className="flex items-start gap-2">
+                    <ClipboardList className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
                         {TIPO_LABEL[s.tipo]} — {s.descricao}
-                      </span>
-                      <span
-                        className={cn(
-                          "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
-                          isPendente
-                            ? "bg-destructive text-destructive-foreground"
-                            : "bg-amber-500 text-white",
-                        )}
-                      >
-                        {isPendente ? "Pendente" : "Em andamento"}
-                      </span>
-                      {!s.pago && (
-                        <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-warning text-warning-foreground">
-                          Não pago
-                        </span>
-                      )}
+                      </h4>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {s.condominios?.nome ?? ""}
-                      {s.unidades ? ` · Bloco ${s.unidades.blocos?.nome} / Unidade ${s.unidades.numero}` : ""}
-                    </p>
                   </div>
-                  <span className="text-[11px] text-muted-foreground whitespace-nowrap flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> {fmtDate(s.data_solicitacao)}
-                  </span>
-                </Link>
+
+                  <div className="space-y-1.5 text-xs text-muted-foreground">
+                    {s.condominios?.nome && (
+                      <div className="inline-flex items-center gap-1.5 w-full">
+                        <Building2 className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{s.condominios.nome}</span>
+                      </div>
+                    )}
+                    {s.unidades && (
+                      <div className="inline-flex items-center gap-1.5 w-full">
+                        <Home className="h-3 w-3 shrink-0" />
+                        <span className="truncate">
+                          {s.unidades.blocos?.nome ? `Bloco ${s.unidades.blocos.nome} / ` : ""}
+                          Unidade {s.unidades.numero}
+                        </span>
+                      </div>
+                    )}
+                    <div className="inline-flex items-center gap-1.5 w-full">
+                      <Clock className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{fmtDate(s.data_solicitacao)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span
+                      className={cn(
+                        "text-[11px] font-semibold uppercase px-2 py-1 rounded",
+                        statusInfo.cls,
+                      )}
+                    >
+                      {statusInfo.label}
+                    </span>
+                    {!s.pago && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase px-2 py-1 rounded bg-warning text-warning-foreground">
+                        <CircleDollarSign className="h-3 w-3" />
+                        Não pago
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="mt-auto pt-2 border-t border-border">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Link to="/solicitacoes">Ver detalhes</Link>
+                    </Button>
+                  </div>
+                </div>
               );
             })}
           </div>
