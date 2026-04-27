@@ -61,6 +61,8 @@ type LiberacaoRow = {
   status: Status;
   revogada_em: string | null;
   revogada_motivo: string | null;
+  created_by: string | null;
+  updated_at: string | null;
   created_at: string;
 };
 
@@ -176,6 +178,189 @@ function generateKeyword(format: "numeric" | "alpha", length = 6): string {
   return out;
 }
 
+function formatTimestamp(iso?: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+type SectionTone = "today" | "periodo" | "permanente";
+
+function Section({
+  title,
+  icon,
+  tone,
+  count,
+  empty,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  tone: SectionTone;
+  count: number;
+  empty: string;
+  children: React.ReactNode;
+}) {
+  const headerBg =
+    tone === "today"
+      ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/40"
+      : tone === "periodo"
+      ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/40"
+      : "bg-muted/40";
+  return (
+    <section className="bg-card border rounded-xl overflow-hidden">
+      <header
+        className={cn(
+          "flex items-center justify-between px-4 py-2.5 border-b",
+          headerBg,
+        )}
+      >
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          {icon}
+          <span>{title}</span>
+        </div>
+        <Badge variant="outline" className="text-xs">
+          {count}
+        </Badge>
+      </header>
+      {count === 0 ? (
+        <div className="px-4 py-6 text-center text-sm text-muted-foreground">{empty}</div>
+      ) : (
+        <div className="divide-y">{children}</div>
+      )}
+    </section>
+  );
+}
+
+function LiberacaoRowItem({
+  r,
+  tone,
+  condoMap,
+  profileMap,
+  canManage,
+  onGrant,
+  grantPending,
+  onEdit,
+  onRevoke,
+  onCopyKey,
+}: {
+  r: LiberacaoRow;
+  tone: SectionTone;
+  condoMap: Map<string, string>;
+  profileMap: Map<string, string>;
+  canManage: boolean;
+  onGrant: () => void;
+  grantPending: boolean;
+  onEdit: () => void;
+  onRevoke: () => void;
+  onCopyKey: () => void;
+}) {
+  const autor =
+    r.origem === "morador"
+      ? r.autorizador_morador_nome ?? "Morador"
+      : r.origem === "sindico"
+      ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
+      : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
+  const alertKind = expiryAlert(r);
+  const wasEdited =
+    !!r.updated_at && !!r.created_at && r.updated_at.slice(0, 19) !== r.created_at.slice(0, 19);
+  const criadoPor = r.created_by ? profileMap.get(r.created_by) ?? "—" : "—";
+  const rowBg = tone === "today" ? "bg-red-50/40 dark:bg-red-950/10" : "";
+
+  return (
+    <div className={cn("px-4 py-3 grid gap-3 md:grid-cols-12 items-start", rowBg)}>
+      {/* Visitante */}
+      <div className="md:col-span-3">
+        <div className="font-medium">{r.visitante_nome}</div>
+        <div className="text-xs text-muted-foreground">{r.visitante_documento}</div>
+        <div className="text-xs text-muted-foreground capitalize mt-0.5">{r.tipo_visita}</div>
+      </div>
+
+      {/* Condomínio + Autor */}
+      <div className="md:col-span-3 text-sm">
+        <div className="inline-flex items-center gap-1.5">
+          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+          {condoMap.get(r.condominio_id) ?? "—"}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">Autorizado por: {autor}</div>
+      </div>
+
+      {/* Validade + Palavra-chave */}
+      <div className="md:col-span-3 text-sm">
+        <div className="inline-flex items-center gap-1.5">
+          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+          {validadeTexto(r)}
+        </div>
+        {alertKind === "today" && (
+          <div className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600 mt-1">
+            <AlertTriangle className="h-3 w-3" /> Expira hoje
+          </div>
+        )}
+        {alertKind === "soon" && (
+          <div className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 mt-1">
+            <Clock className="h-3 w-3" /> Expira em breve
+          </div>
+        )}
+        <div className="mt-1">
+          {r.palavra_chave ? (
+            <button
+              type="button"
+              onClick={onCopyKey}
+              className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
+              title="Copiar palavra-chave"
+            >
+              <KeyRound className="h-3 w-3" /> {r.palavra_chave}
+              <Copy className="h-3 w-3 opacity-60" />
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground">Sem palavra-chave</span>
+          )}
+        </div>
+      </div>
+
+      {/* Status + Ações */}
+      <div className="md:col-span-3 flex flex-col items-start md:items-end gap-2">
+        {statusBadge(r.status)}
+        {canManage && (
+          <div className="inline-flex gap-1 items-center">
+            {r.status === "ativa" && (
+              <Button
+                size="sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
+                onClick={onGrant}
+                disabled={grantPending}
+                title="Liberar acesso agora"
+              >
+                <DoorOpen className="h-4 w-4" /> Liberar
+              </Button>
+            )}
+            <Button size="icon" variant="ghost" onClick={onEdit} title="Editar">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            {r.status !== "revogada" && (
+              <Button size="icon" variant="ghost" onClick={onRevoke} title="Revogar">
+                <ShieldOff className="h-4 w-4 text-destructive" />
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Auditoria */}
+      <div className="md:col-span-12 text-[11px] text-muted-foreground border-t pt-2 flex flex-wrap gap-x-4 gap-y-0.5">
+        <span>Criado por: <span className="font-medium text-foreground/80">{criadoPor}</span></span>
+        <span>Data/Hora: {formatTimestamp(r.created_at)}</span>
+        {wasEdited && <span>Última alteração: {formatTimestamp(r.updated_at)}</span>}
+      </div>
+    </div>
+  );
+}
+
 export function LiberacoesManager() {
   const qc = useQueryClient();
   const { canManageOperational } = useAuth();
@@ -186,9 +371,6 @@ export function LiberacoesManager() {
 
   const [filterCondo, setFilterCondo] = useState<string>("all");
   const [filterTipo, setFilterTipo] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterFrom, setFilterFrom] = useState<string>("");
-  const [filterTo, setFilterTo] = useState<string>("");
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
@@ -208,6 +390,25 @@ export function LiberacoesManager() {
     },
   });
 
+  // Profiles for audit metadata ("Criado por")
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles", "names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nome_completo, email");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const profileMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (profiles as any[]).forEach((p) => {
+      m.set(p.id, p.nome_completo || p.email || "Usuário");
+    });
+    return m;
+  }, [profiles]);
+
   const condoMap = useMemo(() => {
     const m = new Map<string, string>();
     condominios.forEach((c: any) => m.set(c.id, c.nome));
@@ -226,13 +427,12 @@ export function LiberacoesManager() {
   const { data: blocos = [] } = useBlocos(form.condominio_id || undefined);
   const { data: unidades = [] } = useUnidades(form.autorizador_unidade_bloco_id || undefined);
 
-  const filtered = useMemo(() => {
+  // Apenas ativas no painel principal. Aplica filtros + busca.
+  const filteredAtivas = useMemo(() => {
     return liberacoes.filter((r) => {
+      if (r.status !== "ativa") return false;
       if (filterCondo !== "all" && r.condominio_id !== filterCondo) return false;
       if (filterTipo !== "all" && r.tipo_visita !== filterTipo) return false;
-      if (filterStatus !== "all" && r.status !== filterStatus) return false;
-      if (filterFrom && r.created_at < filterFrom) return false;
-      if (filterTo && r.created_at > `${filterTo}T23:59:59`) return false;
       if (search) {
         const s = search.trim().toLowerCase();
         const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.palavra_chave ?? ""} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
@@ -240,7 +440,65 @@ export function LiberacoesManager() {
       }
       return true;
     });
-  }, [liberacoes, filterCondo, filterTipo, filterStatus, filterFrom, filterTo, search]);
+  }, [liberacoes, filterCondo, filterTipo, search]);
+
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  const sections = useMemo(() => {
+    const hoje: LiberacaoRow[] = [];
+    const periodo: LiberacaoRow[] = [];
+    const permanente: LiberacaoRow[] = [];
+
+    for (const r of filteredAtivas) {
+      // 1) Hoje: tipo única (created hoje) OU período cobrindo hoje
+      const isUnicaHoje =
+        r.tipo_validade === "unica" &&
+        r.created_at.slice(0, 10) === todayIso;
+      const isPeriodoHoje =
+        r.tipo_validade === "periodo" &&
+        !!r.data_inicio &&
+        !!r.data_fim &&
+        r.data_inicio <= todayIso &&
+        r.data_fim >= todayIso;
+
+      if (isUnicaHoje || isPeriodoHoje) {
+        hoje.push(r);
+        continue;
+      }
+
+      // 2) Período (futuras ou em andamento já não capturadas)
+      if (r.tipo_validade === "periodo") {
+        periodo.push(r);
+        continue;
+      }
+
+      // 3) Permanente
+      if (r.tipo_validade === "permanente") {
+        permanente.push(r);
+      }
+    }
+
+    // Ordenações
+    hoje.sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+    periodo.sort((a, b) => {
+      const ax = a.data_fim ?? "9999-12-31";
+      const bx = b.data_fim ?? "9999-12-31";
+      return ax < bx ? -1 : ax > bx ? 1 : 0;
+    });
+    permanente.sort((a, b) => {
+      const ax = (a.autorizador_empresa_nome || a.visitante_nome || "").toLowerCase();
+      const bx = (b.autorizador_empresa_nome || b.visitante_nome || "").toLowerCase();
+      return ax < bx ? -1 : ax > bx ? 1 : 0;
+    });
+
+    return { hoje, periodo, permanente };
+  }, [filteredAtivas, todayIso]);
 
   const openCreate = () => {
     setForm(emptyForm());
@@ -403,19 +661,6 @@ export function LiberacoesManager() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos status</SelectItem>
-            <SelectItem value="ativa">Ativa</SelectItem>
-            <SelectItem value="expirada">Expirada</SelectItem>
-            <SelectItem value="revogada">Revogada</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex gap-2">
-          <Input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} />
-          <Input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} />
-        </div>
       </div>
 
       <div className="flex justify-end">
@@ -426,123 +671,86 @@ export function LiberacoesManager() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-card border rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
-              <tr>
-                <th className="px-4 py-3 font-medium">Visitante</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Condomínio</th>
-                <th className="px-4 py-3 font-medium">Autorizado por</th>
-                <th className="px-4 py-3 font-medium">Validade</th>
-                <th className="px-4 py-3 font-medium">Palavra-chave</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Carregando…</td></tr>
-              )}
-              {!isLoading && filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">Nenhuma liberação encontrada.</td></tr>
-              )}
-              {filtered.map((r) => {
-                const autor =
-                  r.origem === "morador"
-                    ? r.autorizador_morador_nome ?? "Morador"
-                    : r.origem === "sindico"
-                    ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
-                    : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
-                const alert = expiryAlert(r);
-                return (
-                  <tr key={r.id} className="border-t">
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{r.visitante_nome}</div>
-                      <div className="text-xs text-muted-foreground">{r.visitante_documento}</div>
-                    </td>
-                    <td className="px-4 py-3 capitalize">{r.tipo_visita}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        {condoMap.get(r.condominio_id) ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{autor}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                          {validadeTexto(r)}
-                        </span>
-                        {alert === "today" && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600">
-                            <AlertTriangle className="h-3 w-3" /> Expira hoje
-                          </span>
-                        )}
-                        {alert === "soon" && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600">
-                            <Clock className="h-3 w-3" /> Expira em breve
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.palavra_chave ? (
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(r.palavra_chave!)}
-                          className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
-                          title="Copiar palavra-chave"
-                        >
-                          <KeyRound className="h-3 w-3" /> {r.palavra_chave}
-                          <Copy className="h-3 w-3 opacity-60" />
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">{statusBadge(r.status)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {canManage && (
-                        <div className="inline-flex gap-1 items-center">
-                          {r.status === "ativa" && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
-                              onClick={() => grantMutation.mutate(r.id)}
-                              disabled={grantMutation.isPending}
-                              title="Liberar acesso agora"
-                            >
-                              <DoorOpen className="h-4 w-4" /> Liberar
-                            </Button>
-                          )}
-                          <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          {r.status !== "revogada" && (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => setRevokeTarget(r)}
-                              title="Revogar"
-                            >
-                              <ShieldOff className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* Sectioned listing */}
+      {isLoading ? (
+        <div className="bg-card border rounded-xl p-10 text-center text-muted-foreground">
+          Carregando…
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6">
+          <Section
+            title="Liberações de hoje"
+            icon={<AlertTriangle className="h-4 w-4 text-red-600" />}
+            tone="today"
+            count={sections.hoje.length}
+            empty="Nenhuma liberação para hoje."
+          >
+            {sections.hoje.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="today"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+
+          <Section
+            title="Liberações por período"
+            icon={<CalendarIcon className="h-4 w-4 text-amber-600" />}
+            tone="periodo"
+            count={sections.periodo.length}
+            empty="Nenhuma liberação por período pendente."
+          >
+            {sections.periodo.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="periodo"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+
+          <Section
+            title="Liberações permanentes"
+            icon={<ShieldCheck className="h-4 w-4 text-emerald-600" />}
+            tone="permanente"
+            count={sections.permanente.length}
+            empty="Nenhuma liberação permanente."
+          >
+            {sections.permanente.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="permanente"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+        </div>
+      )}
 
       {/* Form dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
