@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Plus,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { useMudancas } from "@/lib/queries";
+import { useMudancas, isFuture, isToday } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,8 +69,14 @@ function todayISO() {
 export function MudancasManager({ openNew = false }: { openNew?: boolean }) {
   const qc = useQueryClient();
   const { canManageOperational } = useAuth();
+  // Lê ?periodo=passadas|hoje|futuras|todas vindo do Dashboard.
+  const search = (useSearch({ strict: false }) as { periodo?: string }) ?? {};
+  const periodoInicial = (search.periodo === "passadas" || search.periodo === "hoje" || search.periodo === "futuras")
+    ? search.periodo
+    : "todas";
   const [filtroCondo, setFiltroCondo] = useState<string>("all");
   const [filtroTipo, setFiltroTipo] = useState<"all" | TipoMudanca>("all");
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"todas" | "passadas" | "hoje" | "futuras">(periodoInicial);
   const [busca, setBusca] = useState("");
   const [buscaDeb, setBuscaDeb] = useState("");
   const [editing, setEditing] = useState<"new" | null>(openNew ? "new" : null);
@@ -111,13 +118,16 @@ export function MudancasManager({ openNew = false }: { openNew?: boolean }) {
     return mudancas.filter((m) => {
       if (filtroCondo !== "all" && m.condominio_id !== filtroCondo) return false;
       if (filtroTipo !== "all" && m.tipo !== filtroTipo) return false;
+      if (filtroPeriodo === "hoje" && !isToday(m.data)) return false;
+      if (filtroPeriodo === "futuras" && !isFuture(m.data)) return false;
+      if (filtroPeriodo === "passadas" && (isToday(m.data) || isFuture(m.data))) return false;
       if (buscaDeb) {
         const hay = `${m.condominios?.nome ?? ""} ${m.moradores?.nome ?? ""} ${m.unidades?.numero ?? ""} ${m.unidades?.blocos?.nome ?? ""}`.toLowerCase();
         if (!hay.includes(buscaDeb)) return false;
       }
       return true;
     });
-  }, [mudancas, filtroCondo, filtroTipo, buscaDeb]);
+  }, [mudancas, filtroCondo, filtroTipo, filtroPeriodo, buscaDeb]);
 
   return (
     <div className="space-y-4">
@@ -148,9 +158,18 @@ export function MudancasManager({ openNew = false }: { openNew?: boolean }) {
             <SelectItem value="saida">Saída</SelectItem>
           </SelectContent>
         </Select>
-        {(filtroCondo !== "all" || filtroTipo !== "all" || busca) && (
+        <Select value={filtroPeriodo} onValueChange={(v) => setFiltroPeriodo(v as typeof filtroPeriodo)}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Período" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todos os períodos</SelectItem>
+            <SelectItem value="hoje">Hoje</SelectItem>
+            <SelectItem value="futuras">Futuras</SelectItem>
+            <SelectItem value="passadas">Passadas</SelectItem>
+          </SelectContent>
+        </Select>
+        {(filtroCondo !== "all" || filtroTipo !== "all" || filtroPeriodo !== "todas" || busca) && (
           <Button variant="outline" size="sm"
-            onClick={() => { setFiltroCondo("all"); setFiltroTipo("all"); setBusca(""); }}>
+            onClick={() => { setFiltroCondo("all"); setFiltroTipo("all"); setFiltroPeriodo("todas"); setBusca(""); }}>
             Limpar filtros
           </Button>
         )}
