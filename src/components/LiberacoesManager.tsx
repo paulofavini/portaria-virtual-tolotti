@@ -349,6 +349,29 @@ export function LiberacoesManager() {
     onError: (e: any) => toast.error(e.message ?? "Erro ao revogar."),
   });
 
+  const grantMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("liberacao_acessos" as any)
+        .insert({ liberacao_id: id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Acesso liberado e registrado.");
+      qc.invalidateQueries({ queryKey: ["liberacoes"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Erro ao registrar acesso."),
+  });
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Palavra-chave copiada.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -356,7 +379,7 @@ export function LiberacoesManager() {
         <div className="md:col-span-2 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por visitante, documento, autorizador…"
+            placeholder="Buscar por visitante, documento ou palavra-chave…"
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
