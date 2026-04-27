@@ -10,9 +10,8 @@ import {
   Plus,
   Pencil,
   Trash2,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -101,7 +100,7 @@ function reportError(scope: string, error: unknown) {
   toast.error(`Erro: ${scope}`, { description: msg });
 }
 
-export function OrientacoesMural() {
+export function OrientacoesMural({ limit }: { limit?: number } = {}) {
   const qc = useQueryClient();
   const { user, isAdmin, isOperador } = useAuth();
   const canCreate = isAdmin || isOperador;
@@ -109,7 +108,6 @@ export function OrientacoesMural() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<OrientacaoRow | null>(null);
   const [deleting, setDeleting] = useState<OrientacaoRow | null>(null);
-  const [expanded, setExpanded] = useState(false);
 
   const orientacoes = useQuery({
     queryKey: ["orientacoes"],
@@ -163,10 +161,10 @@ export function OrientacoesMural() {
     onError: (e) => reportError("excluir orientação", e),
   });
 
-  const items = orientacoes.data ?? [];
-  const PREVIEW_COUNT = 2;
-  const visibleItems = expanded ? items : items.slice(0, PREVIEW_COUNT);
-  const hiddenCount = Math.max(0, items.length - PREVIEW_COUNT);
+  const allItems = orientacoes.data ?? [];
+  const items = typeof limit === "number" ? allItems.slice(0, limit) : allItems;
+  const totalCount = allItems.length;
+  const showSeeAll = typeof limit === "number" && totalCount > limit;
 
   return (
     <div
@@ -180,14 +178,21 @@ export function OrientacoesMural() {
             📢 Orientações aos operadores
           </h2>
           <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-            {items.length}
+            {totalCount}
           </span>
         </div>
-        {canCreate && (
-          <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
-            <Plus className="h-4 w-4 mr-1" /> Nova orientação
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {showSeeAll && (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/avisos">Ver tudo</Link>
+            </Button>
+          )}
+          {canCreate && (
+            <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }}>
+              <Plus className="h-4 w-4 mr-1" /> Nova
+            </Button>
+          )}
+        </div>
       </div>
 
       {orientacoes.isLoading ? (
@@ -197,8 +202,8 @@ export function OrientacoesMural() {
           Nenhuma orientação cadastrada
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 max-h-[520px] overflow-y-auto pr-1">
-          {visibleItems.map((o) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {items.map((o) => {
             const s = tipoStyles(o.tipo);
             const isOwner = !!user && o.created_by === user.id;
             const canEdit = isAdmin || (isOperador && isOwner);
@@ -268,26 +273,6 @@ export function OrientacoesMural() {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {items.length > PREVIEW_COUNT && (
-        <div className="mt-3 flex justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setExpanded((v) => !v)}
-          >
-            {expanded ? (
-              <>
-                <ChevronUp className="h-4 w-4 mr-1" /> Ocultar
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4 mr-1" /> Ver todas ({hiddenCount} a mais)
-              </>
-            )}
-          </Button>
         </div>
       )}
 

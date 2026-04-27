@@ -103,7 +103,7 @@ export function ConvidadosHoje() {
             Nenhum evento próximo
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 max-h-[520px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {proximosEventos.map((e) => {
               const c = counts.data?.get(e.id);
               const total = c?.total ?? 0;
