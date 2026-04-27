@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOcorrencias } from "@/lib/queries";
-import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
 
 const MAX = 4;
