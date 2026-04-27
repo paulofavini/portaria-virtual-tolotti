@@ -429,7 +429,10 @@ function SolicitacaoFormDialog({
   const [condominioId, setCondominioId] = useState<string>("");
   const [blocoId, setBlocoId] = useState<string>("");
   const [unidadeId, setUnidadeId] = useState<string>("");
+  const [moradorId, setMoradorId] = useState<string>("");
   const [moradorNome, setMoradorNome] = useState("");
+  const [moradorManual, setMoradorManual] = useState(false);
+  const [moradorPopoverOpen, setMoradorPopoverOpen] = useState(false);
   const [tipo, setTipo] = useState<TipoSolicitacao>("tag");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState<string>("");
@@ -439,6 +442,20 @@ function SolicitacaoFormDialog({
   const condominios = useCondominios();
   const blocos = useBlocos(condominioId || undefined);
   const unidades = useUnidades(blocoId || undefined);
+
+  const moradoresUnidade = useQuery({
+    queryKey: ["moradores-por-unidade", unidadeId],
+    enabled: !!unidadeId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("moradores")
+        .select("id, nome, telefone")
+        .eq("unidade_id", unidadeId)
+        .order("nome");
+      if (error) throw error;
+      return data as { id: string; nome: string; telefone: string | null }[];
+    },
+  });
 
   // Pre-fill bloco when editing
   const editingBlocoId = useQuery({
@@ -459,7 +476,12 @@ function SolicitacaoFormDialog({
     if (!open) return;
     setCondominioId(editing?.condominio_id ?? "");
     setUnidadeId(editing?.unidade_id ?? "");
+    setMoradorId(editing?.morador_id ?? "");
     setMoradorNome(editing?.morador_nome ?? "");
+    // Se o registro antigo tem nome mas não tem morador_id e tem unidade,
+    // começamos no modo automático para tentar casar com a lista; se não casar,
+    // o operador pode ativar o modo manual.
+    setMoradorManual(!!editing && !editing.morador_id && !!editing.morador_nome && !editing.unidade_id);
     setTipo(editing?.tipo ?? "tag");
     setDescricao(editing?.descricao ?? "");
     setValor(editing?.valor != null ? String(editing.valor) : "");
@@ -472,14 +494,34 @@ function SolicitacaoFormDialog({
     if (open && editingBlocoId.data) setBlocoId(editingBlocoId.data);
   }, [open, editingBlocoId.data]);
 
+  // Limpa o morador selecionado quando a unidade muda (a menos que o registro
+  // editado já corresponda).
+  useEffect(() => {
+    if (!open) return;
+    if (editing && editing.unidade_id === unidadeId) return;
+    setMoradorId("");
+    if (!moradorManual) setMoradorNome("");
+  }, [unidadeId, open, editing, moradorManual]);
+
   const save = useMutation({
     mutationFn: async () => {
       if (!condominioId) throw new Error("Selecione o condomínio");
       if (!descricao.trim()) throw new Error("Descrição é obrigatória");
+      // Resolve nome do morador a partir da seleção (quando aplicável)
+      let nomeFinal: string | null = null;
+      let idFinal: string | null = null;
+      if (moradorManual) {
+        nomeFinal = moradorNome.trim() || null;
+      } else if (moradorId) {
+        const m = (moradoresUnidade.data ?? []).find((x) => x.id === moradorId);
+        idFinal = moradorId;
+        nomeFinal = m?.nome ?? null;
+      }
       const payload = {
         condominio_id: condominioId,
         unidade_id: unidadeId || null,
-        morador_nome: moradorNome.trim() || null,
+        morador_id: idFinal,
+        morador_nome: nomeFinal,
         tipo,
         descricao: descricao.trim(),
         status,
