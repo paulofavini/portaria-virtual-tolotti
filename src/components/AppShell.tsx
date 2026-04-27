@@ -13,7 +13,6 @@ import {
   LogOut,
   Menu,
   X,
-  Shield,
   Plus,
   Search,
   UserCog,
@@ -22,6 +21,7 @@ import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { Logo } from "@/components/Logo";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,13 +80,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="h-16 px-6 flex items-center gap-2 border-b border-sidebar-border">
-          <div className="h-9 w-9 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <Shield className="h-5 w-5 text-sidebar-primary-foreground" />
-          </div>
-          <div>
-            <div className="text-sm font-bold leading-tight">Portaria Virtual</div>
-            <div className="text-[11px] text-sidebar-foreground/70">Grupo Tolotti</div>
+        <div className="h-16 px-4 flex items-center gap-3 border-b border-sidebar-border">
+          <Logo size="sm" onDark />
+          <div className="min-w-0">
+            <div className="text-sm font-bold leading-tight truncate">Portaria Virtual</div>
+            <div className="text-[11px] text-sidebar-foreground/70 truncate">Grupo Tolotti</div>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
@@ -134,12 +132,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative w-72 bg-sidebar text-sidebar-foreground flex flex-col">
-            <div className="h-16 px-5 flex items-center justify-between border-b border-sidebar-border">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                <span className="font-bold">Portaria Tolotti</span>
+            <div className="h-16 px-4 flex items-center justify-between border-b border-sidebar-border">
+              <div className="flex items-center gap-2 min-w-0">
+                <Logo size="sm" onDark />
+                <span className="font-bold truncate">Portaria Tolotti</span>
               </div>
-              <button onClick={() => setOpen(false)} className="p-1">
+              <button onClick={() => setOpen(false)} className="p-1 shrink-0">
                 <X className="h-5 w-5" />
               </button>
             </div>

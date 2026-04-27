@@ -4,8 +4,8 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield } from "lucide-react";
 import { toast } from "sonner";
+import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -41,8 +41,8 @@ function LoginPage() {
     >
       <div className="w-full max-w-md">
         <div className="text-center mb-8 text-white">
-          <div className="inline-flex h-16 w-16 rounded-2xl bg-white/15 backdrop-blur items-center justify-center mb-4">
-            <Shield className="h-8 w-8" />
+          <div className="inline-flex items-center justify-center mb-5 px-6 py-4 rounded-2xl bg-white/10 backdrop-blur">
+            <Logo size="xl" onDark className="sm:h-32" />
           </div>
           <h1 className="text-2xl font-bold">Portaria Virtual</h1>
           <p className="text-white/80 text-sm mt-1">Grupo Tolotti</p>
