@@ -1102,7 +1102,14 @@ export type Database = {
       origem_liberacao: "morador" | "sindico" | "empresa"
       origem_orientacao: "interna" | "sindico" | "morador"
       prioridade_aviso: "normal" | "urgente"
-      status_chamado: "pendente" | "em_andamento" | "concluido"
+      status_chamado:
+        | "pendente"
+        | "em_andamento"
+        | "concluido"
+        | "aberto"
+        | "aguardando_terceiro"
+        | "resolvido"
+        | "cancelado"
       status_liberacao: "ativa" | "expirada" | "revogada"
       status_ocorrencia: "em_andamento" | "finalizada"
       status_solicitacao:
@@ -1247,7 +1254,15 @@ export const Constants = {
       origem_liberacao: ["morador", "sindico", "empresa"],
       origem_orientacao: ["interna", "sindico", "morador"],
       prioridade_aviso: ["normal", "urgente"],
-      status_chamado: ["pendente", "em_andamento", "concluido"],
+      status_chamado: [
+        "pendente",
+        "em_andamento",
+        "concluido",
+        "aberto",
+        "aguardando_terceiro",
+        "resolvido",
+        "cancelado",
+      ],
       status_liberacao: ["ativa", "expirada", "revogada"],
       status_ocorrencia: ["em_andamento", "finalizada"],
       status_solicitacao: [
