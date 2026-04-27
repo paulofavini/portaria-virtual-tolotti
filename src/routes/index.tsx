@@ -8,7 +8,6 @@ import {
   Wrench,
   ChevronRight,
   Clock,
-  Pin,
 } from "lucide-react";
 import {
   useAvisos,
