@@ -6,6 +6,7 @@ import { ConvidadosHoje } from "@/components/ConvidadosHoje";
 import { MudancasResumo } from "@/components/MudancasResumo";
 import { AvisosResumo } from "@/components/AvisosResumo";
 import { ChamadosResumo } from "@/components/ChamadosResumo";
+import { OcorrenciasResumo } from "@/components/OcorrenciasResumo";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -33,20 +34,23 @@ function Dashboard() {
       {/* 1) Eventos */}
       <ConvidadosHoje />
 
-      {/* 2) Solicitações */}
-      <SolicitacoesResumo />
-
-      {/* 3) Orientações aos operadores */}
-      <OrientacoesMural limit={4} />
-
-      {/* 4) Mudanças */}
+      {/* 2) Mudanças */}
       <MudancasResumo />
+
+      {/* 3) Ocorrências */}
+      <OcorrenciasResumo />
+
+      {/* 4) Solicitações */}
+      <SolicitacoesResumo />
 
       {/* 5) Avisos */}
       <AvisosResumo />
 
       {/* 6) Chamados técnicos */}
       <ChamadosResumo />
+
+      {/* 7) Orientações aos operadores */}
+      <OrientacoesMural limit={4} />
     </div>
   );
 }
