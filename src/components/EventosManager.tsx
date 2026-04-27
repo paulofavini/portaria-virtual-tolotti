@@ -301,6 +301,12 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
         </div>
       ) : (
         <div className="space-y-2">
+          <div className="text-xs text-muted-foreground">
+            Eventos encontrados: <span className="font-semibold text-foreground">{filtered.length}</span>
+            {filtered.length !== (eventos?.length ?? 0) && (
+              <> · Total cadastrado: {eventos?.length ?? 0}</>
+            )}
+          </div>
           {filtered.map((e) => {
             const counts = convCounts?.get(e.id) ?? { total: 0, presentes: 0 };
             return (
