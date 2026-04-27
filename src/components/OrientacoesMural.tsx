@@ -212,7 +212,7 @@ export function OrientacoesMural() {
             return (
               <div
                 key={o.id}
-                className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors"
+                className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
                 <div className="flex items-start gap-2">
