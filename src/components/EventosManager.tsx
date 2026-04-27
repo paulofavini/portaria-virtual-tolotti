@@ -419,6 +419,7 @@ function EventoDialog({
     (evento?.local as LocalEvento) ?? "",
   );
   const [observacoes, setObservacoes] = useState(evento?.observacoes ?? "");
+  const [convidadosTexto, setConvidadosTexto] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Carregar blocos do condomínio
@@ -488,13 +489,20 @@ function EventoDialog({
       if (isEdit && evento) {
         const { error } = await supabase.from("eventos").update(payload).eq("id", evento.id);
         if (error) throw error;
+        await inserirConvidadosDoTexto(evento.id, convidadosTexto);
       } else {
-        const { error } = await supabase.from("eventos").insert(payload);
+        const { data: novo, error } = await supabase
+          .from("eventos")
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        if (novo?.id) await inserirConvidadosDoTexto(novo.id, convidadosTexto);
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
       await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
       await qc.refetchQueries({ queryKey: ["eventos", "full"] });
+      await qc.invalidateQueries({ queryKey: ["evento_convidados"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
@@ -618,6 +626,22 @@ function EventoDialog({
               placeholder="Detalhes, regras, restrições..."
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ev_convidados">
+              Lista de convidados {isEdit && <span className="text-xs text-muted-foreground font-normal">(adiciona aos existentes)</span>}
+            </Label>
+            <Textarea
+              id="ev_convidados"
+              value={convidadosTexto}
+              onChange={(e) => setConvidadosTexto(e.target.value)}
+              placeholder="Digite um nome por linha"
+              rows={5}
+            />
+            <p className="text-xs text-muted-foreground">
+              Um nome por linha. Linhas em branco são ignoradas. Você poderá editar a lista depois pelo botão de convidados do evento.
+            </p>
           </div>
         </div>
 
