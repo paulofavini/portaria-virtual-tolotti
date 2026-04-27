@@ -236,9 +236,140 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
     return result;
   }, [eventos, filtroCondo, buscaDebounced]);
 
+  // Separa em "Próximos" (data >= hoje, asc) e "Passados" (data < hoje, desc)
+  const { proximos, passados } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const parse = (s: string) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+      return m
+        ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+        : new Date(s);
+    };
+    const fut: EventoRow[] = [];
+    const pas: EventoRow[] = [];
+    for (const e of filtered) {
+      if (!e.data) {
+        pas.push(e);
+        continue;
+      }
+      const d = parse(e.data);
+      d.setHours(0, 0, 0, 0);
+      if (d.getTime() >= today.getTime()) fut.push(e);
+      else pas.push(e);
+    }
+    fut.sort((a, b) => {
+      const da = parse(a.data).getTime();
+      const db = parse(b.data).getTime();
+      if (da !== db) return da - db;
+      return (a.horario ?? "99:99").localeCompare(b.horario ?? "99:99");
+    });
+    pas.sort((a, b) => parse(b.data).getTime() - parse(a.data).getTime());
+    return { proximos: fut, passados: pas };
+  }, [filtered]);
+
   const handleClose = () => {
     setEditing(null);
     if (openNew) navigate({ to: "/eventos" });
+  };
+
+  const renderEventoCard = (e: EventoRow) => {
+    const counts = convCounts?.get(e.id) ?? { total: 0, presentes: 0 };
+    return (
+      <div
+        key={e.id}
+        className="relative overflow-hidden rounded-xl border border-border p-4 sm:p-5 pl-5 sm:pl-6 bg-card transition-shadow hover:shadow-md"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-primary" />
+        <div className="flex items-start gap-3">
+          <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+            <PartyPopper className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground/70 shrink-0" />
+                <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight break-words">
+                  {e.condominios?.nome ?? "Sem condomínio"}
+                </h2>
+              </div>
+              {counts.total > 0 && (
+                <span className={cn(
+                  "text-xs sm:text-sm font-bold px-2 py-0.5 rounded border shrink-0",
+                  counts.presentes === counts.total
+                    ? "bg-success/15 text-success border-success/30"
+                    : "bg-primary/10 text-primary border-primary/30",
+                )}>
+                  {counts.presentes}/{counts.total} presentes
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-base font-medium text-foreground/90 break-words">
+              {e.titulo || e.descricao || "(sem título)"}
+            </h3>
+
+            <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {new Date(e.data + "T00:00:00").toLocaleDateString("pt-BR")}
+                {e.horario && ` · ${fmtTime(e.horario)}`}
+              </span>
+              {e.local && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {e.local}
+                </span>
+              )}
+              {e.unidades && (
+                <span>
+                  {formatUnidadeBloco(e.unidades)}
+                </span>
+              )}
+              {e.moradores && (
+                <span>Morador: <span className="font-medium text-foreground/80">{e.moradores.nome}</span></span>
+              )}
+              {(e.creator?.nome_completo || e.created_at) && (
+                <span>
+                  Por <span className="font-medium text-foreground/80">{e.creator?.nome_completo ?? "—"}</span>
+                </span>
+              )}
+            </div>
+
+            {e.observacoes && (
+              <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">{e.observacoes}</p>
+            )}
+          </div>
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setConvidadosOpen(e)}
+              title="Ver convidados"
+            >
+              <Users className="h-4 w-4 mr-1" />
+              Convidados {counts.total > 0 && `(${counts.presentes}/${counts.total})`}
+            </Button>
+            {canManageOperational && (
+              <>
+                <Button size="icon" variant="ghost" title="Editar" onClick={() => setEditing(e)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  title="Excluir"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setRemoving(e)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
