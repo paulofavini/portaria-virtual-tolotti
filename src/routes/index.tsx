@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { OrientacoesMural } from "@/components/OrientacoesMural";
 import { SolicitacoesResumo } from "@/components/SolicitacoesResumo";
+import { ConvidadosHoje } from "@/components/ConvidadosHoje";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -211,6 +212,9 @@ function Dashboard() {
 
       {/* Mural de orientações aos operadores */}
       <OrientacoesMural />
+
+      {/* Convidados dos eventos do dia — controle de presença rápido */}
+      <ConvidadosHoje />
 
       {/* Solicitações priorizadas para o plantão */}
       <SolicitacoesResumo />
