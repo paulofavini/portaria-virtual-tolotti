@@ -1,12 +1,18 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Building2, Home, PartyPopper } from "lucide-react";
+import { Users, Building2, Home, PartyPopper, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useEventos, isToday } from "@/lib/queries";
 import { ConvidadosDialog, type EventoRow } from "@/components/EventosManager";
 import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
+
+function fmtDataCard(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
 
 export function ConvidadosHoje() {
   const eventosQ = useEventos();
@@ -74,7 +80,16 @@ export function ConvidadosHoje() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  {/* Linha 1 — Condomínio (maior destaque) */}
+                  {/* Linha 1 — Data do evento (destaque leve) */}
+                  <div className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5 shrink-0" />
+                    <span>
+                      {fmtDataCard(e.data)}
+                      {e.horario ? ` · ${String(e.horario).slice(0, 5)}` : ""}
+                    </span>
+                  </div>
+
+                  {/* Linha 2 — Condomínio (maior destaque) */}
                   <div className="flex items-start gap-2">
                     <Building2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <h4 className="text-base font-semibold text-foreground leading-tight line-clamp-2 min-w-0 flex-1">
@@ -82,7 +97,7 @@ export function ConvidadosHoje() {
                     </h4>
                   </div>
 
-                  {/* Linha 2 — Unidade + bloco (destaque médio) */}
+                  {/* Linha 3 — Unidade + bloco (destaque médio) */}
                   {e.unidades && (
                     <div className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80">
                       <Home className="h-3.5 w-3.5 shrink-0" />
@@ -92,7 +107,7 @@ export function ConvidadosHoje() {
                     </div>
                   )}
 
-                  {/* Linha 3 — Nome do evento (menor destaque) */}
+                  {/* Linha 4 — Nome do evento (menor destaque) */}
                   <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                     <PartyPopper className="h-3 w-3 shrink-0" />
                     <span className="truncate">
