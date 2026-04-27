@@ -242,9 +242,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             {QUICK_ACTIONS.map((a) => {
               const Icon = a.icon;
               return (
-                <DropdownMenuItem key={a.to} onClick={() => navigate({ to: a.to })}>
-                  <Icon className="h-4 w-4 mr-2" />
-                  {a.label}
+                <DropdownMenuItem key={a.to} asChild>
+                  <Link to={a.to}>
+                    <Icon className="h-4 w-4 mr-2" />
+                    {a.label}
+                  </Link>
                 </DropdownMenuItem>
               );
             })}
