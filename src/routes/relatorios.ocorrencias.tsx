@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Download, FileBarChart } from "lucide-react";
+import {
+  Download,
+  FileBarChart,
+  UserCheck,
+  Package,
+  Wrench,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+} from "lucide-react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -37,6 +46,18 @@ const STATUS_LABEL: Record<string, string> = {
   finalizada: "Finalizada",
 };
 
+const TIPO_CARDS: Array<{
+  key: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: string;
+}> = [
+  { key: "visitante", label: "Visitante", icon: UserCheck, tone: "bg-primary/10 text-primary" },
+  { key: "entrega", label: "Entrega", icon: Package, tone: "bg-success/15 text-success" },
+  { key: "prestador", label: "Prestador", icon: Wrench, tone: "bg-warning/15 text-warning-foreground" },
+  { key: "geral", label: "Geral", icon: AlertTriangle, tone: "bg-destructive/10 text-destructive" },
+];
+
 function RelatorioOcorrenciasPage() {
   const { isAdmin, roles, loading: authLoading } = useAuth();
   const isSindico = roles.includes("sindico");
@@ -70,6 +91,25 @@ function RelatorioOcorrenciasPage() {
       })
       .sort((a, b) => new Date(b.data_hora).getTime() - new Date(a.data_hora).getTime());
   }, [ocorrencias, dataInicio, dataFim, condominioId, tipoFiltro, statusFiltro]);
+
+  const resumo = useMemo(() => {
+    const porTipo: Record<string, number> = {
+      visitante: 0,
+      entrega: 0,
+      prestador: 0,
+      geral: 0,
+    };
+    let emAndamento = 0;
+    let finalizada = 0;
+    for (const o of filtered) {
+      const t = (o.tipo as string) ?? "geral";
+      porTipo[t] = (porTipo[t] ?? 0) + 1;
+      const s = o.status ?? "em_andamento";
+      if (s === "finalizada") finalizada += 1;
+      else emAndamento += 1;
+    }
+    return { total: filtered.length, porTipo, emAndamento, finalizada };
+  }, [filtered]);
 
   const exportCSV = () => {
     if (!canExport) {
@@ -156,6 +196,38 @@ function RelatorioOcorrenciasPage() {
           Seu perfil permite visualizar o relatório, mas não exportá-lo.
         </p>
       )}
+
+      {/* Resumo */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 mb-4">
+        <SummaryCard
+          label="Total"
+          value={resumo.total}
+          icon={FileBarChart}
+          tone="bg-foreground/10 text-foreground"
+          highlight
+        />
+        {TIPO_CARDS.map((t) => (
+          <SummaryCard
+            key={t.key}
+            label={t.label}
+            value={resumo.porTipo[t.key] ?? 0}
+            icon={t.icon}
+            tone={t.tone}
+          />
+        ))}
+        <SummaryCard
+          label="Em andamento"
+          value={resumo.emAndamento}
+          icon={Clock}
+          tone="bg-warning/15 text-warning-foreground"
+        />
+        <SummaryCard
+          label="Finalizadas"
+          value={resumo.finalizada}
+          icon={CheckCircle2}
+          tone="bg-success/15 text-success"
+        />
+      </div>
 
       <div
         className="bg-card rounded-xl border border-border p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"
