@@ -158,7 +158,7 @@ export const useChamados = () =>
 
 export const isToday = (iso: string | null | undefined) => {
   if (!iso) return false;
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
   const today = new Date();
   return (
     d.getFullYear() === today.getFullYear() &&
@@ -169,7 +169,7 @@ export const isToday = (iso: string | null | undefined) => {
 
 export const isYesterday = (iso: string | null | undefined) => {
   if (!iso) return false;
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
   const y = new Date();
   y.setDate(y.getDate() - 1);
   return (
@@ -181,8 +181,25 @@ export const isYesterday = (iso: string | null | undefined) => {
 
 export const isFuture = (iso: string | null | undefined) => {
   if (!iso) return false;
-  const d = new Date(iso);
+  const d = parseLocalDate(iso);
+  const dStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return d.getTime() > today.getTime();
+  return dStart > today.getTime();
 };
+
+/**
+ * Parse a date value from Supabase safely in the user's local timezone.
+ * - Plain "YYYY-MM-DD" (date columns) is parsed as local midnight
+ *   to avoid the UTC-shift bug that made events/mudanças appear on the wrong day.
+ * - Full ISO timestamps with time/zone info are parsed normally.
+ */
+function parseLocalDate(value: string): Date {
+  // Detect plain date (no time component): YYYY-MM-DD
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (m) {
+    const [, y, mo, d] = m;
+    return new Date(Number(y), Number(mo) - 1, Number(d));
+  }
+  return new Date(value);
+}
