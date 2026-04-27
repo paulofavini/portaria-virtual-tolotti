@@ -46,7 +46,7 @@ export const LOCAIS_EVENTO = [
 
 type LocalEvento = typeof LOCAIS_EVENTO[number];
 
-type EventoRow = {
+export type EventoRow = {
   id: string;
   titulo: string | null;
   descricao: string | null;
