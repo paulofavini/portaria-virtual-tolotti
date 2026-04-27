@@ -5,6 +5,7 @@ import { ClipboardList, ChevronRight, CircleDollarSign, Clock, Building2, Home }
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 type TipoSolicitacao = "tag" | "controle" | "imagens" | "acesso" | "outros";
 type StatusSolicitacao = "pendente" | "em_andamento" | "concluido" | "cancelado";
@@ -147,8 +148,7 @@ export function SolicitacoesResumo() {
                       <div className="inline-flex items-center gap-1.5 w-full">
                         <Home className="h-3 w-3 shrink-0" />
                         <span className="truncate">
-                          {s.unidades.blocos?.nome ? `Bloco ${s.unidades.blocos.nome} / ` : ""}
-                          Unidade {s.unidades.numero}
+                          {formatUnidadeBloco(s.unidades)}
                         </span>
                       </div>
                     )}
