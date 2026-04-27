@@ -41,7 +41,7 @@ function LoginPage() {
     >
       <div className="w-full max-w-md py-12">
         <div className="flex flex-col items-center text-center mb-10 text-white">
-          <Logo onDark className="w-[200px] h-auto mt-2 mb-8" />
+          <Logo onDark className="w-[220px] h-auto mt-2 mb-6" />
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Portaria Virtual</h1>
           <p className="text-white/70 text-sm mt-1.5">Grupo Tolotti</p>
         </div>
