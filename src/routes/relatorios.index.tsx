@@ -461,6 +461,7 @@ function CadastralSection() {
       title: `Cadastral — ${CAD_LABELS[type]}`,
       columns,
       data: rows,
+      summary: [{ label: "Total de registros", value: rows.length }],
     }).then(() => toast.success(`PDF gerado com ${rows.length} registro(s)`));
   };
 
@@ -721,6 +722,7 @@ function AuditoriaSection() {
             title: "Auditoria do sistema",
             columns,
             data: filtered,
+            summary: [{ label: "Total de eventos", value: filtered.length }],
           });
         }}
       />
