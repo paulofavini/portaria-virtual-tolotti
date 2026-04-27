@@ -37,7 +37,7 @@ type TipoAviso = "informativo" | "urgente" | "manutencao";
 type AvisoRow = {
   id: string;
   titulo: string | null;
-  descricao: string;
+  descricao: string | null;
   tipo: TipoAviso;
   data: string;
   ativo: boolean;
@@ -201,7 +201,9 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
   };
 
   const handleCopy = async (a: AvisoRow) => {
-    const text = `${a.titulo ?? ""}\n\n${a.descricao}`.trim();
+    const desc = a.descricao?.trim() ?? "";
+    const titulo = a.titulo?.trim() ?? "";
+    const text = desc ? `${titulo}\n\n${desc}`.trim() : titulo;
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Aviso copiado");
@@ -324,7 +326,7 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                           <Pin className="h-3 w-3" /> Fixado
                         </span>
                       )}
-                      <h3 className="font-semibold text-foreground">{a.titulo || a.descricao.slice(0, 60)}</h3>
+                      <h3 className="font-semibold text-foreground">{a.titulo || (a.descricao ? a.descricao.slice(0, 60) : "(sem título)")}</h3>
                       <span className={cn(
                         "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
                         TIPO_BADGE[a.tipo],
@@ -337,7 +339,7 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                         </span>
                       )}
                     </div>
-                    {a.titulo && a.descricao && (
+                    {a.titulo && a.descricao && a.descricao.trim() !== "" && (
                       <p className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">{a.descricao}</p>
                     )}
                     <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1">
@@ -421,7 +423,7 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover aviso</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação removerá permanentemente o aviso <strong>{removing?.titulo || removing?.descricao.slice(0, 40)}</strong>. Não pode ser desfeita.
+              Esta ação removerá permanentemente o aviso <strong>{removing?.titulo || removing?.descricao?.slice(0, 40) || "selecionado"}</strong>. Não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -477,7 +479,6 @@ function AvisoDialog({
     if (saving) return;
     if (!condominioId) { toast.error("Selecione um condomínio"); return; }
     if (!titulo.trim()) { toast.error("Informe o título"); return; }
-    if (!descricao.trim()) { toast.error("Informe a descrição"); return; }
 
     let dataExpISO: string | null = null;
     if (dataExpiracao) {
@@ -491,9 +492,10 @@ function AvisoDialog({
 
     setSaving(true);
     try {
+      const descTrim = descricao.trim();
       const payload = {
         titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        descricao: descTrim ? descTrim : null,
         tipo,
         condominio_id: condominioId,
         data,
@@ -551,12 +553,12 @@ function AvisoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="a_desc">Descrição *</Label>
+            <Label htmlFor="a_desc">Descrição</Label>
             <Textarea
               id="a_desc"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Detalhe o aviso..."
+              placeholder="Detalhe o aviso (opcional)"
               rows={4}
             />
           </div>

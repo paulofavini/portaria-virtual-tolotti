@@ -1,0 +1,1 @@
+ALTER TABLE public.avisos ALTER COLUMN descricao DROP NOT NULL;
