@@ -35,7 +35,7 @@ import {
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/fornecedores", label: "Liberações", icon: Truck },
+  { to: "/liberacoes", label: "Liberações", icon: Truck },
   { to: "/avisos", label: "Avisos", icon: Bell },
   { to: "/eventos", label: "Eventos", icon: PartyPopper },
   { to: "/mudancas", label: "Mudanças", icon: TruckIcon },
