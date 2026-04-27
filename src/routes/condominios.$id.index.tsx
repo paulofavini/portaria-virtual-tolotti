@@ -9,7 +9,7 @@ import { formatEndereco } from "@/lib/address";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 
-export const Route = createFileRoute("/condominios/$id")({
+export const Route = createFileRoute("/condominios/$id/")({
   component: CondoDetailPage,
 });
 
