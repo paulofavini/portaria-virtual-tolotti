@@ -39,9 +39,9 @@ function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{ background: "var(--gradient-brand)" }}
     >
-      <div className="w-full max-w-md py-10">
-        <div className="flex flex-col items-center text-center mb-6 text-white">
-          <Logo size="md" onDark className="h-14 mb-4" />
+      <div className="w-full max-w-md py-12">
+        <div className="flex flex-col items-center text-center mb-8 text-white">
+          <Logo size="md" onDark className="h-[70px] mb-6" />
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Portaria Virtual</h1>
           <p className="text-white/70 text-xs mt-1">Grupo Tolotti</p>
         </div>
