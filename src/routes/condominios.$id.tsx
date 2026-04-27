@@ -1,11 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Building2, MapPin, Phone, User } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Pencil, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { MoradoresManager } from "@/components/MoradoresManager";
 import { OcorrenciasPanel } from "@/components/OcorrenciasPanel";
 import { formatEndereco } from "@/lib/address";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/condominios/$id")({
   component: CondoDetailPage,
@@ -14,6 +16,7 @@ export const Route = createFileRoute("/condominios/$id")({
 function CondoDetailPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["condominio", id],
     queryFn: async () => {
@@ -42,7 +45,19 @@ function CondoDetailPage() {
         <EmptyState title="Condomínio não encontrado" description="Este condomínio não existe ou foi removido." />
       ) : (
         <>
-          <PageHeader title={data.nome} description={data.cnpj ? `CNPJ: ${data.cnpj}` : undefined} />
+          <PageHeader
+            title={data.nome}
+            description={data.cnpj ? `CNPJ: ${data.cnpj}` : undefined}
+            action={
+              isAdmin ? (
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/condominios/$id/editar" params={{ id: data.id }}>
+                    <Pencil className="h-4 w-4 mr-1" /> Editar
+                  </Link>
+                </Button>
+              ) : null
+            }
+          />
           {formatEndereco(data) && (
             <div
               className="bg-card rounded-xl border border-border p-4 mb-3 flex items-start gap-3"

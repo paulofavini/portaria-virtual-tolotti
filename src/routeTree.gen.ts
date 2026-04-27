@@ -29,6 +29,7 @@ import { Route as CondominiosNovoRouteImport } from './routes/condominios.novo'
 import { Route as CondominiosIdRouteImport } from './routes/condominios.$id'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as AvisosNovoRouteImport } from './routes/avisos.novo'
+import { Route as CondominiosIdEditarRouteImport } from './routes/condominios.$id.editar'
 
 const UsuariosRoute = UsuariosRouteImport.update({
   id: '/usuarios',
@@ -130,6 +131,11 @@ const AvisosNovoRoute = AvisosNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => AvisosRoute,
 } as any)
+const CondominiosIdEditarRoute = CondominiosIdEditarRouteImport.update({
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => CondominiosIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,13 +151,14 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
-  '/condominios/$id': typeof CondominiosIdRoute
+  '/condominios/$id': typeof CondominiosIdRouteWithChildren
   '/condominios/novo': typeof CondominiosNovoRoute
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
+  '/condominios/$id/editar': typeof CondominiosIdEditarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,13 +173,14 @@ export interface FileRoutesByTo {
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
-  '/condominios/$id': typeof CondominiosIdRoute
+  '/condominios/$id': typeof CondominiosIdRouteWithChildren
   '/condominios/novo': typeof CondominiosNovoRoute
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios': typeof CondominiosIndexRoute
+  '/condominios/$id/editar': typeof CondominiosIdEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -189,13 +197,14 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
-  '/condominios/$id': typeof CondominiosIdRoute
+  '/condominios/$id': typeof CondominiosIdRouteWithChildren
   '/condominios/novo': typeof CondominiosNovoRoute
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
+  '/condominios/$id/editar': typeof CondominiosIdEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios/'
+    | '/condominios/$id/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios'
+    | '/condominios/$id/editar'
   id:
     | '__root__'
     | '/'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios/'
+    | '/condominios/$id/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -422,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AvisosNovoRouteImport
       parentRoute: typeof AvisosRoute
     }
+    '/condominios/$id/editar': {
+      id: '/condominios/$id/editar'
+      path: '/editar'
+      fullPath: '/condominios/$id/editar'
+      preLoaderRoute: typeof CondominiosIdEditarRouteImport
+      parentRoute: typeof CondominiosIdRoute
+    }
   }
 }
 
@@ -448,14 +467,26 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
   ChamadosRouteChildren,
 )
 
+interface CondominiosIdRouteChildren {
+  CondominiosIdEditarRoute: typeof CondominiosIdEditarRoute
+}
+
+const CondominiosIdRouteChildren: CondominiosIdRouteChildren = {
+  CondominiosIdEditarRoute: CondominiosIdEditarRoute,
+}
+
+const CondominiosIdRouteWithChildren = CondominiosIdRoute._addFileChildren(
+  CondominiosIdRouteChildren,
+)
+
 interface CondominiosRouteChildren {
-  CondominiosIdRoute: typeof CondominiosIdRoute
+  CondominiosIdRoute: typeof CondominiosIdRouteWithChildren
   CondominiosNovoRoute: typeof CondominiosNovoRoute
   CondominiosIndexRoute: typeof CondominiosIndexRoute
 }
 
 const CondominiosRouteChildren: CondominiosRouteChildren = {
-  CondominiosIdRoute: CondominiosIdRoute,
+  CondominiosIdRoute: CondominiosIdRouteWithChildren,
   CondominiosNovoRoute: CondominiosNovoRoute,
   CondominiosIndexRoute: CondominiosIndexRoute,
 }
