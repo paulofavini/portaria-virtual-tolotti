@@ -234,8 +234,8 @@ export function LiberacoesManager() {
       if (filterFrom && r.created_at < filterFrom) return false;
       if (filterTo && r.created_at > `${filterTo}T23:59:59`) return false;
       if (search) {
-        const s = search.toLowerCase();
-        const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
+        const s = search.trim().toLowerCase();
+        const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.palavra_chave ?? ""} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
         if (!hay.includes(s)) return false;
       }
       return true;
