@@ -40,11 +40,9 @@ function LoginPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{ background: "var(--gradient-brand)" }}
     >
-      <div className="w-full max-w-md py-12">
-        <div className="flex flex-col items-center text-center mb-10 text-white">
-          <Logo onDark className="w-[220px] h-auto mt-2 mb-6" />
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Portaria Virtual</h1>
-          <p className="text-white/70 text-sm mt-1.5">Grupo Tolotti</p>
+      <div className="w-full max-w-md py-6">
+        <div className="flex justify-center mb-4">
+          <Logo onDark className="w-[170px] h-auto" />
         </div>
         <div className="bg-card rounded-2xl p-6 sm:p-8" style={{ boxShadow: "var(--shadow-elevated)" }}>
           <h2 className="text-lg font-semibold text-foreground mb-1">Acessar sistema</h2>
