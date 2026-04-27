@@ -197,90 +197,75 @@ export function OrientacoesMural() {
           Nenhuma orientação ativa no momento.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto pr-1">
           {visibleItems.map((o) => {
             const s = tipoStyles(o.tipo);
             const isOwner = !!user && o.created_by === user.id;
             const canEdit = isAdmin || (isOperador && isOwner);
             const canDelete = isAdmin || (isOperador && isOwner);
-            const isAlertish = o.tipo === "urgente" || o.tipo === "alerta";
-            const tone =
+            const tipoBadgeCls =
               o.tipo === "urgente"
-                ? "bg-red-50 dark:bg-red-950/20"
+                ? "bg-destructive text-destructive-foreground"
                 : o.tipo === "alerta"
-                ? "bg-amber-50 dark:bg-amber-950/20"
-                : "bg-card";
-            const softShadow =
-              o.tipo === "urgente"
-                ? "0 2px 8px rgba(239,68,68,0.15)"
-                : o.tipo === "alerta"
-                ? "0 2px 8px rgba(245,158,11,0.12)"
-                : "var(--shadow-card)";
+                  ? "bg-amber-500 text-white"
+                  : "bg-primary text-primary-foreground";
             return (
-              <article
+              <div
                 key={o.id}
-                className={cn(
-                  "relative overflow-hidden rounded-xl border p-4 pl-5 transition-shadow hover:shadow-md",
-                  tone,
-                  s.ring,
-                  o.fixado && !isAlertish && "border-2",
-                )}
-                style={{ boxShadow: softShadow }}
+                className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors"
+                style={{ boxShadow: "var(--shadow-card)" }}
               >
-                <span aria-hidden className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-xl", s.bar)} />
-                <div className="flex items-start gap-3">
-                  <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center shrink-0", s.iconWrap)}>
-                    <s.Icon className="h-5 w-5" />
+                <div className="flex items-start gap-2">
+                  <div className={cn("h-7 w-7 rounded-md flex items-center justify-center shrink-0", s.iconWrap)}>
+                    <s.Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-foreground leading-tight">
-                        {o.titulo}
-                      </h3>
-                      {o.fixado && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                          <Pin className="h-3 w-3" /> Fixado
-                        </span>
-                      )}
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded",
-                        o.tipo === "urgente" ? "bg-destructive text-destructive-foreground"
-                        : o.tipo === "alerta" ? "bg-amber-500 text-white"
-                        : "bg-primary text-primary-foreground"
-                      )}>
-                        {TIPO_LABEL[o.tipo]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-foreground/90 mt-1 whitespace-pre-wrap">
-                      {o.mensagem}
-                    </p>
-                    <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-2 flex-wrap">
-                      {o.origem && (
-                        <span className="px-1.5 py-0.5 rounded border border-border">
-                          Origem: {ORIGEM_LABEL[o.origem]}
-                        </span>
-                      )}
-                      <span>
-                        Cadastrado por {profileMap.get(o.created_by ?? "") || "—"} em {fmtDateTime(o.created_at)}
-                      </span>
-                    </div>
+                    <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
+                      {o.titulo}
+                    </h4>
                   </div>
-                  {(canEdit || canDelete) && (
-                    <div className="flex flex-col gap-1 shrink-0">
-                      {canEdit && (
-                        <Button size="icon" variant="ghost" onClick={() => { setEditing(o); setOpen(true); }} aria-label="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {canDelete && (
-                        <Button size="icon" variant="ghost" onClick={() => setDeleting(o)} aria-label="Excluir">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
-                    </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5 rounded", tipoBadgeCls)}>
+                    {TIPO_LABEL[o.tipo]}
+                  </span>
+                  {o.fixado && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                      <Pin className="h-3 w-3" /> Fixado
+                    </span>
                   )}
                 </div>
-              </article>
+
+                <p className="text-xs text-foreground/90 line-clamp-3 whitespace-pre-wrap">
+                  {o.mensagem}
+                </p>
+
+                <div className="space-y-1 text-[11px] text-muted-foreground">
+                  {o.origem && (
+                    <div className="truncate">Origem: {ORIGEM_LABEL[o.origem]}</div>
+                  )}
+                  <div className="truncate">
+                    Por {profileMap.get(o.created_by ?? "") || "—"}
+                  </div>
+                  <div className="truncate">{fmtDateTime(o.created_at)}</div>
+                </div>
+
+                {(canEdit || canDelete) && (
+                  <div className="mt-auto pt-2 border-t border-border flex items-center justify-end gap-1">
+                    {canEdit && (
+                      <Button size="icon" variant="ghost" onClick={() => { setEditing(o); setOpen(true); }} aria-label="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button size="icon" variant="ghost" onClick={() => setDeleting(o)} aria-label="Excluir">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
