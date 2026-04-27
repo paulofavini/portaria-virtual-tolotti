@@ -21,6 +21,7 @@ import { Route as CondominiosRouteImport } from './routes/condominios'
 import { Route as ChamadosRouteImport } from './routes/chamados'
 import { Route as AvisosRouteImport } from './routes/avisos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RelatoriosIndexRouteImport } from './routes/relatorios.index'
 import { Route as CondominiosIndexRouteImport } from './routes/condominios.index'
 import { Route as RelatoriosOcorrenciasRouteImport } from './routes/relatorios.ocorrencias'
 import { Route as OcorrenciasNovoRouteImport } from './routes/ocorrencias.novo'
@@ -91,6 +92,11 @@ const AvisosRoute = AvisosRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosIndexRoute = RelatoriosIndexRouteImport.update({
+  id: '/relatorios/',
+  path: '/relatorios/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CondominiosIndexRoute = CondominiosIndexRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
+  '/relatorios/': typeof RelatoriosIndexRoute
   '/condominios/$id/editar': typeof CondominiosIdEditarRoute
   '/condominios/$id/': typeof CondominiosIdIndexRoute
 }
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios': typeof CondominiosIndexRoute
+  '/relatorios': typeof RelatoriosIndexRoute
   '/condominios/$id/editar': typeof CondominiosIdEditarRoute
   '/condominios/$id': typeof CondominiosIdIndexRoute
 }
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
   '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
+  '/relatorios/': typeof RelatoriosIndexRoute
   '/condominios/$id/editar': typeof CondominiosIdEditarRoute
   '/condominios/$id/': typeof CondominiosIdIndexRoute
 }
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios/'
+    | '/relatorios/'
     | '/condominios/$id/editar'
     | '/condominios/$id/'
   fileRoutesByTo: FileRoutesByTo
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios'
+    | '/relatorios'
     | '/condominios/$id/editar'
     | '/condominios/$id'
   id:
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/ocorrencias/novo'
     | '/relatorios/ocorrencias'
     | '/condominios/'
+    | '/relatorios/'
     | '/condominios/$id/editar'
     | '/condominios/$id/'
   fileRoutesById: FileRoutesById
@@ -313,6 +325,7 @@ export interface RootRouteChildren {
   SolicitacoesRoute: typeof SolicitacoesRoute
   UsuariosRoute: typeof UsuariosRoute
   RelatoriosOcorrenciasRoute: typeof RelatoriosOcorrenciasRoute
+  RelatoriosIndexRoute: typeof RelatoriosIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios/': {
+      id: '/relatorios/'
+      path: '/relatorios'
+      fullPath: '/relatorios/'
+      preLoaderRoute: typeof RelatoriosIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/condominios/': {
@@ -583,6 +603,7 @@ const rootRouteChildren: RootRouteChildren = {
   SolicitacoesRoute: SolicitacoesRoute,
   UsuariosRoute: UsuariosRoute,
   RelatoriosOcorrenciasRoute: RelatoriosOcorrenciasRoute,
+  RelatoriosIndexRoute: RelatoriosIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
