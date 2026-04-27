@@ -22,6 +22,7 @@ export type Database = {
           created_by: string | null
           data: string
           descricao: string
+          fixado: boolean
           id: string
           prioridade: Database["public"]["Enums"]["prioridade_aviso"]
           tipo: Database["public"]["Enums"]["tipo_aviso"]
@@ -35,6 +36,7 @@ export type Database = {
           created_by?: string | null
           data: string
           descricao: string
+          fixado?: boolean
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_aviso"]
           tipo?: Database["public"]["Enums"]["tipo_aviso"]
@@ -48,6 +50,7 @@ export type Database = {
           created_by?: string | null
           data?: string
           descricao?: string
+          fixado?: boolean
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_aviso"]
           tipo?: Database["public"]["Enums"]["tipo_aviso"]
