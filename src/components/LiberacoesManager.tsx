@@ -745,11 +745,49 @@ export function LiberacoesManager() {
               </div>
               <div className="space-y-1.5">
                 <Label>Palavra-chave (opcional)</Label>
-                <Input
-                  value={form.palavra_chave}
-                  onChange={(e) => setForm((f) => ({ ...f, palavra_chave: e.target.value }))}
-                  placeholder="Validação na portaria"
-                />
+                <div className="flex gap-1.5">
+                  <Input
+                    value={form.palavra_chave}
+                    onChange={(e) => setForm((f) => ({ ...f, palavra_chave: e.target.value }))}
+                    placeholder="Validação na portaria"
+                    className="font-mono"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Gerar numérica (6 dígitos)"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, palavra_chave: generateKeyword("numeric", 6) }))
+                    }
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Gerar alfanumérica (6 caracteres)"
+                    onClick={() =>
+                      setForm((f) => ({ ...f, palavra_chave: generateKeyword("alpha", 6) }))
+                    }
+                  >
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Copiar"
+                    disabled={!form.palavra_chave}
+                    onClick={() => copyToClipboard(form.palavra_chave)}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Use os botões para gerar numérica, alfanumérica ou copiar.
+                </p>
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <Label>Observações</Label>
