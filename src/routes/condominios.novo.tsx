@@ -40,7 +40,9 @@ function NovoCondominioPage() {
   const handleSubmit = async (form: CondominioFormValues) => {
     setSaving(true);
     const payload = condominioFormToPayload(form);
-    const { error } = await supabase.from("condominios").insert(payload);
+    const { error } = await supabase
+      .from("condominios")
+      .insert(payload as never);
     setSaving(false);
     if (error) {
       console.log(error);
