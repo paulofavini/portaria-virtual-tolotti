@@ -61,7 +61,7 @@ export function ConvidadosHoje() {
             Nenhum evento para hoje
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 max-h-[520px] overflow-y-auto pr-1">
             {eventosHoje.map((e) => {
               const c = counts.data?.get(e.id);
               const total = c?.total ?? 0;
@@ -70,7 +70,7 @@ export function ConvidadosHoje() {
               return (
                 <div
                   key={e.id}
-                  className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors"
+                  className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
                   <div className="flex items-start gap-2">
