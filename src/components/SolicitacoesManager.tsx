@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Building2,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +30,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
 import { useCondominios, useBlocos, useUnidades } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +70,7 @@ type SolicitacaoRow = {
   id: string;
   condominio_id: string;
   unidade_id: string | null;
+  morador_id: string | null;
   morador_nome: string | null;
   tipo: TipoSolicitacao;
   descricao: string;
@@ -420,7 +429,10 @@ function SolicitacaoFormDialog({
   const [condominioId, setCondominioId] = useState<string>("");
   const [blocoId, setBlocoId] = useState<string>("");
   const [unidadeId, setUnidadeId] = useState<string>("");
+  const [moradorId, setMoradorId] = useState<string>("");
   const [moradorNome, setMoradorNome] = useState("");
+  const [moradorManual, setMoradorManual] = useState(false);
+  const [moradorPopoverOpen, setMoradorPopoverOpen] = useState(false);
   const [tipo, setTipo] = useState<TipoSolicitacao>("tag");
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState<string>("");
@@ -430,6 +442,20 @@ function SolicitacaoFormDialog({
   const condominios = useCondominios();
   const blocos = useBlocos(condominioId || undefined);
   const unidades = useUnidades(blocoId || undefined);
+
+  const moradoresUnidade = useQuery({
+    queryKey: ["moradores-por-unidade", unidadeId],
+    enabled: !!unidadeId && open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("moradores")
+        .select("id, nome, telefone")
+        .eq("unidade_id", unidadeId)
+        .order("nome");
+      if (error) throw error;
+      return data as { id: string; nome: string; telefone: string | null }[];
+    },
+  });
 
   // Pre-fill bloco when editing
   const editingBlocoId = useQuery({
@@ -450,7 +476,12 @@ function SolicitacaoFormDialog({
     if (!open) return;
     setCondominioId(editing?.condominio_id ?? "");
     setUnidadeId(editing?.unidade_id ?? "");
+    setMoradorId(editing?.morador_id ?? "");
     setMoradorNome(editing?.morador_nome ?? "");
+    // Se o registro antigo tem nome mas não tem morador_id e tem unidade,
+    // começamos no modo automático para tentar casar com a lista; se não casar,
+    // o operador pode ativar o modo manual.
+    setMoradorManual(!!editing && !editing.morador_id && !!editing.morador_nome && !editing.unidade_id);
     setTipo(editing?.tipo ?? "tag");
     setDescricao(editing?.descricao ?? "");
     setValor(editing?.valor != null ? String(editing.valor) : "");
@@ -463,14 +494,34 @@ function SolicitacaoFormDialog({
     if (open && editingBlocoId.data) setBlocoId(editingBlocoId.data);
   }, [open, editingBlocoId.data]);
 
+  // Limpa o morador selecionado quando a unidade muda (a menos que o registro
+  // editado já corresponda).
+  useEffect(() => {
+    if (!open) return;
+    if (editing && editing.unidade_id === unidadeId) return;
+    setMoradorId("");
+    if (!moradorManual) setMoradorNome("");
+  }, [unidadeId, open, editing, moradorManual]);
+
   const save = useMutation({
     mutationFn: async () => {
       if (!condominioId) throw new Error("Selecione o condomínio");
       if (!descricao.trim()) throw new Error("Descrição é obrigatória");
+      // Resolve nome do morador a partir da seleção (quando aplicável)
+      let nomeFinal: string | null = null;
+      let idFinal: string | null = null;
+      if (moradorManual) {
+        nomeFinal = moradorNome.trim() || null;
+      } else if (moradorId) {
+        const m = (moradoresUnidade.data ?? []).find((x) => x.id === moradorId);
+        idFinal = moradorId;
+        nomeFinal = m?.nome ?? null;
+      }
       const payload = {
         condominio_id: condominioId,
         unidade_id: unidadeId || null,
-        morador_nome: moradorNome.trim() || null,
+        morador_id: idFinal,
+        morador_nome: nomeFinal,
         tipo,
         descricao: descricao.trim(),
         status,
@@ -536,8 +587,114 @@ function SolicitacaoFormDialog({
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="s-morador">Nome do morador</Label>
-            <Input id="s-morador" value={moradorNome} onChange={(e) => setMoradorNome(e.target.value)} placeholder="(opcional)" />
+            <div className="flex items-center justify-between">
+              <Label>Morador</Label>
+              {unidadeId && (
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    setMoradorManual((m) => !m);
+                    setMoradorId("");
+                    setMoradorNome("");
+                  }}
+                >
+                  {moradorManual ? "Selecionar da lista" : "Digitar manualmente"}
+                </button>
+              )}
+            </div>
+
+            {moradorManual || !unidadeId ? (
+              <Input
+                value={moradorNome}
+                onChange={(e) => setMoradorNome(e.target.value)}
+                placeholder={unidadeId ? "Nome do morador (opcional)" : "Selecione uma unidade primeiro"}
+                disabled={!unidadeId && !moradorManual ? true : false}
+              />
+            ) : moradoresUnidade.isLoading ? (
+              <div className="h-9 px-3 flex items-center text-sm text-muted-foreground border border-input rounded-md">
+                Carregando moradores…
+              </div>
+            ) : (moradoresUnidade.data ?? []).length === 0 ? (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground border border-dashed border-border rounded-md px-3 py-2">
+                  Nenhum morador cadastrado para esta unidade
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setMoradorManual(true)}
+                >
+                  Digitar manualmente
+                </Button>
+              </div>
+            ) : (
+              <Popover open={moradorPopoverOpen} onOpenChange={setMoradorPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={moradorPopoverOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className="truncate">
+                      {(() => {
+                        const m = (moradoresUnidade.data ?? []).find((x) => x.id === moradorId);
+                        if (!m) return <span className="text-muted-foreground">Selecione um morador (opcional)</span>;
+                        return m.telefone ? `${m.nome} (${m.telefone})` : m.nome;
+                      })()}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar morador..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum morador encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {moradorId && (
+                          <CommandItem
+                            value="__limpar__"
+                            onSelect={() => {
+                              setMoradorId("");
+                              setMoradorPopoverOpen(false);
+                            }}
+                          >
+                            <span className="text-muted-foreground">Limpar seleção</span>
+                          </CommandItem>
+                        )}
+                        {(moradoresUnidade.data ?? []).map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={`${m.nome} ${m.telefone ?? ""}`}
+                            onSelect={() => {
+                              setMoradorId(m.id);
+                              setMoradorPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                moradorId === m.id ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <span className="truncate">
+                              {m.nome}
+                              {m.telefone && (
+                                <span className="text-muted-foreground"> ({m.telefone})</span>
+                              )}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
