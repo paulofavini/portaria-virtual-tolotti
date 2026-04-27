@@ -201,7 +201,9 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
   };
 
   const handleCopy = async (a: AvisoRow) => {
-    const text = `${a.titulo ?? ""}\n\n${a.descricao}`.trim();
+    const desc = a.descricao?.trim() ?? "";
+    const titulo = a.titulo?.trim() ?? "";
+    const text = desc ? `${titulo}\n\n${desc}`.trim() : titulo;
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Aviso copiado");
