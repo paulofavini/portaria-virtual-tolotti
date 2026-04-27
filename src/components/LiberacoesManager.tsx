@@ -123,15 +123,57 @@ function formatDate(d?: string | null) {
 }
 
 function statusBadge(s: Status) {
-  if (s === "ativa") return <Badge className="bg-emerald-600 hover:bg-emerald-600">Ativa</Badge>;
-  if (s === "expirada") return <Badge variant="secondary">Expirada</Badge>;
-  return <Badge variant="destructive">Revogada</Badge>;
+  if (s === "ativa")
+    return (
+      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white border-transparent">
+        Ativa
+      </Badge>
+    );
+  if (s === "expirada")
+    return (
+      <Badge className="bg-red-600 hover:bg-red-600 text-white border-transparent">
+        Expirada
+      </Badge>
+    );
+  return (
+    <Badge className="bg-zinc-500 hover:bg-zinc-500 text-white border-transparent">
+      Revogada
+    </Badge>
+  );
 }
 
 function validadeTexto(r: LiberacaoRow) {
   if (r.tipo_validade === "permanente") return "Permanente";
   if (r.tipo_validade === "unica") return "Única";
   return `${formatDate(r.data_inicio)} → ${formatDate(r.data_fim)}`;
+}
+
+/** Returns 'today', 'soon' (<= 3 days) or null. Only meaningful for active 'periodo' liberações. */
+function expiryAlert(r: LiberacaoRow): "today" | "soon" | null {
+  if (r.status !== "ativa" || r.tipo_validade !== "periodo" || !r.data_fim) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = new Date(`${r.data_fim}T00:00:00`);
+  const diffDays = Math.round((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "today";
+  if (diffDays > 0 && diffDays <= 3) return "soon";
+  return null;
+}
+
+function generateKeyword(format: "numeric" | "alpha", length = 6): string {
+  const charset =
+    format === "numeric"
+      ? "0123456789"
+      : "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I para evitar confusão
+  const bytes = new Uint8Array(length);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  let out = "";
+  for (let i = 0; i < length; i++) out += charset[bytes[i] % charset.length];
+  return out;
 }
 
 export function LiberacoesManager() {
