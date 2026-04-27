@@ -1,11 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader, EmptyState } from "@/components/PageHeader";
+import { RequireAuth } from "@/components/RequireAuth";
+import { PageHeader } from "@/components/PageHeader";
+import { ChamadosManager } from "@/components/ChamadosManager";
 
 export const Route = createFileRoute("/chamados/novo")({
   component: () => (
-    <div className="pb-24">
-      <PageHeader title="Novo chamado" description="Em construção." />
-      <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
-    </div>
+    <RequireAuth>
+      <div className="pb-24">
+        <PageHeader
+          title="Novo chamado técnico"
+          description="Cadastre um novo chamado para manutenção, TI ou terceiros."
+        />
+        <ChamadosManager openNew />
+      </div>
+    </RequireAuth>
   ),
 });
