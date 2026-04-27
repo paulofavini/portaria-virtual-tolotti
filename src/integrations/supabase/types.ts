@@ -413,6 +413,7 @@ export type Database = {
           created_by: string | null
           data: string
           id: string
+          morador_id: string | null
           tipo: Database["public"]["Enums"]["tipo_mudanca"]
           unidade_id: string
         }
@@ -422,6 +423,7 @@ export type Database = {
           created_by?: string | null
           data: string
           id?: string
+          morador_id?: string | null
           tipo: Database["public"]["Enums"]["tipo_mudanca"]
           unidade_id: string
         }
@@ -431,6 +433,7 @@ export type Database = {
           created_by?: string | null
           data?: string
           id?: string
+          morador_id?: string | null
           tipo?: Database["public"]["Enums"]["tipo_mudanca"]
           unidade_id?: string
         }
