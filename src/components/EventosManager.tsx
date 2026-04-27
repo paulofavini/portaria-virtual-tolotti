@@ -129,7 +129,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   });
 
   const { data: eventos, isLoading } = useQuery({
-    queryKey: ["eventos"],
+    queryKey: ["eventos", "full"],
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async () => {
@@ -140,6 +140,8 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
         )
         .order("data", { ascending: false })
         .order("horario", { ascending: false });
+      // eslint-disable-next-line no-console
+      console.log("[EventosManager] query result", { count: data?.length, error, data });
       if (error) throw error;
       const list = (data ?? []) as unknown as EventoRow[];
       const ids = Array.from(new Set(list.map((a) => a.created_by).filter(Boolean) as string[]));
@@ -484,7 +486,7 @@ function EventoDialog({
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
       await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
-      await qc.refetchQueries({ queryKey: ["eventos"] });
+      await qc.refetchQueries({ queryKey: ["eventos", "full"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
