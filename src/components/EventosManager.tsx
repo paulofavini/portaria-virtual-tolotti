@@ -102,6 +102,17 @@ function fmtDateTimeISO(iso: string | null | undefined) {
   });
 }
 
+async function inserirConvidadosDoTexto(eventoId: string, texto: string) {
+  const nomes = texto
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  if (nomes.length === 0) return;
+  const rows = nomes.map((nome) => ({ evento_id: eventoId, nome }));
+  const { error } = await supabase.from("evento_convidados").insert(rows);
+  if (error) throw error;
+}
+
 export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
