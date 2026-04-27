@@ -81,14 +81,13 @@ function LoginPage() {
           </p>
         </div>
         <div
-          className="bg-white rounded-2xl mt-6 p-6 flex items-center justify-center"
+          className="bg-white rounded-2xl mt-6 px-6 py-4 flex items-center justify-center w-fit mx-auto"
           style={{ boxShadow: "var(--shadow-elevated)" }}
         >
           <img
             src={logo18Anos}
             alt="Grupo Tolotti — 18 anos"
-            className="mx-auto"
-            style={{ maxHeight: "80px", objectFit: "contain" }}
+            className="max-h-16 w-auto object-contain"
             draggable={false}
           />
         </div>
