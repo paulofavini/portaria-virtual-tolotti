@@ -478,19 +478,6 @@ export function LiberacoesManager() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos status</SelectItem>
-            <SelectItem value="ativa">Ativa</SelectItem>
-            <SelectItem value="expirada">Expirada</SelectItem>
-            <SelectItem value="revogada">Revogada</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex gap-2">
-          <Input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} />
-          <Input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} />
-        </div>
       </div>
 
       <div className="flex justify-end">
@@ -501,123 +488,86 @@ export function LiberacoesManager() {
         )}
       </div>
 
-      {/* Table */}
-      <div className="bg-card border rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
-              <tr>
-                <th className="px-4 py-3 font-medium">Visitante</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Condomínio</th>
-                <th className="px-4 py-3 font-medium">Autorizado por</th>
-                <th className="px-4 py-3 font-medium">Validade</th>
-                <th className="px-4 py-3 font-medium">Palavra-chave</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading && (
-                <tr><td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">Carregando…</td></tr>
-              )}
-              {!isLoading && filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">Nenhuma liberação encontrada.</td></tr>
-              )}
-              {filtered.map((r) => {
-                const autor =
-                  r.origem === "morador"
-                    ? r.autorizador_morador_nome ?? "Morador"
-                    : r.origem === "sindico"
-                    ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
-                    : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
-                const alert = expiryAlert(r);
-                return (
-                  <tr key={r.id} className="border-t">
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{r.visitante_nome}</div>
-                      <div className="text-xs text-muted-foreground">{r.visitante_documento}</div>
-                    </td>
-                    <td className="px-4 py-3 capitalize">{r.tipo_visita}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        {condoMap.get(r.condominio_id) ?? "—"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{autor}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <span className="inline-flex items-center gap-1.5">
-                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                          {validadeTexto(r)}
-                        </span>
-                        {alert === "today" && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600">
-                            <AlertTriangle className="h-3 w-3" /> Expira hoje
-                          </span>
-                        )}
-                        {alert === "soon" && (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600">
-                            <Clock className="h-3 w-3" /> Expira em breve
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.palavra_chave ? (
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(r.palavra_chave!)}
-                          className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
-                          title="Copiar palavra-chave"
-                        >
-                          <KeyRound className="h-3 w-3" /> {r.palavra_chave}
-                          <Copy className="h-3 w-3 opacity-60" />
-                        </button>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">{statusBadge(r.status)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {canManage && (
-                        <div className="inline-flex gap-1 items-center">
-                          {r.status === "ativa" && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
-                              onClick={() => grantMutation.mutate(r.id)}
-                              disabled={grantMutation.isPending}
-                              title="Liberar acesso agora"
-                            >
-                              <DoorOpen className="h-4 w-4" /> Liberar
-                            </Button>
-                          )}
-                          <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          {r.status !== "revogada" && (
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              onClick={() => setRevokeTarget(r)}
-                              title="Revogar"
-                            >
-                              <ShieldOff className="h-4 w-4 text-destructive" />
-                            </Button>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* Sectioned listing */}
+      {isLoading ? (
+        <div className="bg-card border rounded-xl p-10 text-center text-muted-foreground">
+          Carregando…
         </div>
-      </div>
+      ) : (
+        <div className="space-y-6">
+          <Section
+            title="Liberações de hoje"
+            icon={<AlertTriangle className="h-4 w-4 text-red-600" />}
+            tone="today"
+            count={sections.hoje.length}
+            empty="Nenhuma liberação para hoje."
+          >
+            {sections.hoje.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="today"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+
+          <Section
+            title="Liberações por período"
+            icon={<CalendarIcon className="h-4 w-4 text-amber-600" />}
+            tone="periodo"
+            count={sections.periodo.length}
+            empty="Nenhuma liberação por período pendente."
+          >
+            {sections.periodo.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="periodo"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+
+          <Section
+            title="Liberações permanentes"
+            icon={<ShieldCheck className="h-4 w-4 text-emerald-600" />}
+            tone="permanente"
+            count={sections.permanente.length}
+            empty="Nenhuma liberação permanente."
+          >
+            {sections.permanente.map((r) => (
+              <LiberacaoRowItem
+                key={r.id}
+                r={r}
+                tone="permanente"
+                condoMap={condoMap}
+                profileMap={profileMap}
+                canManage={canManage}
+                onGrant={() => grantMutation.mutate(r.id)}
+                grantPending={grantMutation.isPending}
+                onEdit={() => openEdit(r)}
+                onRevoke={() => setRevokeTarget(r)}
+                onCopyKey={() => r.palavra_chave && copyToClipboard(r.palavra_chave)}
+              />
+            ))}
+          </Section>
+        </div>
+      )}
 
       {/* Form dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
