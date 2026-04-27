@@ -158,13 +158,19 @@ export type Database = {
       }
       condominios: {
         Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
           cnpj: string | null
           conselheiros: Json | null
           created_at: string
+          estado: string | null
           id: string
           limpeza_nome: string | null
           limpeza_telefone: string | null
+          logradouro: string | null
           nome: string
+          numero: string | null
           sindico_nome: string | null
           sindico_telefone: string | null
           subsindico_nome: string | null
@@ -174,13 +180,19 @@ export type Database = {
           zelador_telefone: string | null
         }
         Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
           cnpj?: string | null
           conselheiros?: Json | null
           created_at?: string
+          estado?: string | null
           id?: string
           limpeza_nome?: string | null
           limpeza_telefone?: string | null
+          logradouro?: string | null
           nome: string
+          numero?: string | null
           sindico_nome?: string | null
           sindico_telefone?: string | null
           subsindico_nome?: string | null
@@ -190,13 +202,19 @@ export type Database = {
           zelador_telefone?: string | null
         }
         Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
           cnpj?: string | null
           conselheiros?: Json | null
           created_at?: string
+          estado?: string | null
           id?: string
           limpeza_nome?: string | null
           limpeza_telefone?: string | null
+          logradouro?: string | null
           nome?: string
+          numero?: string | null
           sindico_nome?: string | null
           sindico_telefone?: string | null
           subsindico_nome?: string | null
