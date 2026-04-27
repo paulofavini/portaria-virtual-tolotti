@@ -587,8 +587,114 @@ function SolicitacaoFormDialog({
             </div>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="s-morador">Nome do morador</Label>
-            <Input id="s-morador" value={moradorNome} onChange={(e) => setMoradorNome(e.target.value)} placeholder="(opcional)" />
+            <div className="flex items-center justify-between">
+              <Label>Morador</Label>
+              {unidadeId && (
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    setMoradorManual((m) => !m);
+                    setMoradorId("");
+                    setMoradorNome("");
+                  }}
+                >
+                  {moradorManual ? "Selecionar da lista" : "Digitar manualmente"}
+                </button>
+              )}
+            </div>
+
+            {moradorManual || !unidadeId ? (
+              <Input
+                value={moradorNome}
+                onChange={(e) => setMoradorNome(e.target.value)}
+                placeholder={unidadeId ? "Nome do morador (opcional)" : "Selecione uma unidade primeiro"}
+                disabled={!unidadeId && !moradorManual ? true : false}
+              />
+            ) : moradoresUnidade.isLoading ? (
+              <div className="h-9 px-3 flex items-center text-sm text-muted-foreground border border-input rounded-md">
+                Carregando moradores…
+              </div>
+            ) : (moradoresUnidade.data ?? []).length === 0 ? (
+              <div className="space-y-2">
+                <div className="text-sm text-muted-foreground border border-dashed border-border rounded-md px-3 py-2">
+                  Nenhum morador cadastrado para esta unidade
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setMoradorManual(true)}
+                >
+                  Digitar manualmente
+                </Button>
+              </div>
+            ) : (
+              <Popover open={moradorPopoverOpen} onOpenChange={setMoradorPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={moradorPopoverOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    <span className="truncate">
+                      {(() => {
+                        const m = (moradoresUnidade.data ?? []).find((x) => x.id === moradorId);
+                        if (!m) return <span className="text-muted-foreground">Selecione um morador (opcional)</span>;
+                        return m.telefone ? `${m.nome} (${m.telefone})` : m.nome;
+                      })()}
+                    </span>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar morador..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum morador encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {moradorId && (
+                          <CommandItem
+                            value="__limpar__"
+                            onSelect={() => {
+                              setMoradorId("");
+                              setMoradorPopoverOpen(false);
+                            }}
+                          >
+                            <span className="text-muted-foreground">Limpar seleção</span>
+                          </CommandItem>
+                        )}
+                        {(moradoresUnidade.data ?? []).map((m) => (
+                          <CommandItem
+                            key={m.id}
+                            value={`${m.nome} ${m.telefone ?? ""}`}
+                            onSelect={() => {
+                              setMoradorId(m.id);
+                              setMoradorPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                moradorId === m.id ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <span className="truncate">
+                              {m.nome}
+                              {m.telefone && (
+                                <span className="text-muted-foreground"> ({m.telefone})</span>
+                              )}
+                            </span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
