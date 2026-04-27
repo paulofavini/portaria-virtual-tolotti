@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Building2, Phone, User } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { MoradoresManager } from "@/components/MoradoresManager";
 import { OcorrenciasPanel } from "@/components/OcorrenciasPanel";
+import { formatEndereco } from "@/lib/address";
 
 export const Route = createFileRoute("/condominios/$id")({
   component: CondoDetailPage,
@@ -42,6 +43,20 @@ function CondoDetailPage() {
       ) : (
         <>
           <PageHeader title={data.nome} description={data.cnpj ? `CNPJ: ${data.cnpj}` : undefined} />
+          {formatEndereco(data) && (
+            <div
+              className="bg-card rounded-xl border border-border p-4 mb-3 flex items-start gap-3"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <div className="h-10 w-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <MapPin className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">Endereço</div>
+                <div className="text-sm text-foreground">{formatEndereco(data)}</div>
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <ContactCard role="Síndico" name={data.sindico_nome} phone={data.sindico_telefone} />
             <ContactCard role="Subsíndico" name={data.subsindico_nome} phone={data.subsindico_telefone} />
