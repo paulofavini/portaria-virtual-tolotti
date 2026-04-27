@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
+import logo18Anos from "@/assets/logo-tolotti-18anos.png";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -78,6 +79,18 @@ function LoginPage() {
           <p className="text-xs text-muted-foreground mt-6 text-center">
             O acesso é criado pelo administrador do sistema.
           </p>
+        </div>
+        <div
+          className="bg-white rounded-2xl mt-6 p-6 flex items-center justify-center"
+          style={{ boxShadow: "var(--shadow-elevated)" }}
+        >
+          <img
+            src={logo18Anos}
+            alt="Grupo Tolotti — 18 anos"
+            className="mx-auto"
+            style={{ maxHeight: "80px", objectFit: "contain" }}
+            draggable={false}
+          />
         </div>
       </div>
     </div>
