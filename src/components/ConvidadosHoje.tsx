@@ -73,31 +73,31 @@ export function ConvidadosHoje() {
                   className="flex flex-col gap-3 p-4 rounded-lg border border-border bg-background hover:border-primary/40 transition-colors min-h-[200px]"
                   style={{ boxShadow: "var(--shadow-card)" }}
                 >
+                  {/* Linha 1 — Condomínio (maior destaque) */}
                   <div className="flex items-start gap-2">
-                    <PartyPopper className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-                        {e.titulo || e.descricao || "Evento"}
-                      </h4>
-                    </div>
+                    <Building2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <h4 className="text-base font-semibold text-foreground leading-tight line-clamp-2 min-w-0 flex-1">
+                      {e.condominios?.nome ?? "—"}
+                    </h4>
                   </div>
 
-                  <div className="space-y-1.5 text-xs text-muted-foreground">
-                    {e.condominios?.nome && (
-                      <div className="inline-flex items-center gap-1.5 w-full">
-                        <Building2 className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{e.condominios.nome}</span>
-                      </div>
-                    )}
-                    {e.unidades && (
-                      <div className="inline-flex items-center gap-1.5 w-full">
-                        <Home className="h-3 w-3 shrink-0" />
-                        <span className="truncate">
-                          {e.unidades.blocos?.nome ? `Bloco ${e.unidades.blocos.nome} / ` : ""}
-                          Unidade {e.unidades.numero}
-                        </span>
-                      </div>
-                    )}
+                  {/* Linha 2 — Unidade + bloco (destaque médio) */}
+                  {e.unidades && (
+                    <div className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80">
+                      <Home className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">
+                        {e.unidades.blocos?.nome ? `Bloco ${e.unidades.blocos.nome} / ` : ""}
+                        Unidade {e.unidades.numero}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Linha 3 — Nome do evento (menor destaque) */}
+                  <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <PartyPopper className="h-3 w-3 shrink-0" />
+                    <span className="truncate">
+                      {e.titulo || e.descricao || "Evento"}
+                    </span>
                   </div>
 
                   <div className="flex items-center justify-between gap-2 mt-auto pt-2 border-t border-border">
