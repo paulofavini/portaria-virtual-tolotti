@@ -90,7 +90,7 @@ export const useEventos = () =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("eventos")
-        .select("*, condominios(nome), unidades(numero, blocos(nome))")
+        .select("*, condominios(nome), unidades(numero, blocos(nome)), moradores(nome)")
         .order("data", { ascending: false });
       if (error) throw error;
       return data;
