@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -16,14 +16,15 @@ export const Route = createFileRoute("/avisos")({
 
 function AvisosPage() {
   const { data, isLoading } = useAvisos();
+  const navigate = useNavigate();
   return (
     <div className="pb-24">
       <PageHeader
         title="Avisos"
         description="Comunicados e alertas do dia."
         action={
-          <Button asChild>
-            <Link to="/avisos/novo"><Plus className="h-4 w-4 mr-1" /> Novo aviso</Link>
+          <Button onClick={() => navigate({ to: "/avisos/novo" })}>
+            <Plus className="h-4 w-4 mr-1" /> Novo aviso
           </Button>
         }
       />
