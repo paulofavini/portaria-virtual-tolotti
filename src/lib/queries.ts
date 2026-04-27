@@ -103,7 +103,7 @@ export const useMudancas = () =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mudancas")
-        .select("*, condominios(nome), unidades(numero, blocos(nome))")
+        .select("*, condominios(nome), unidades(numero, blocos(nome)), moradores(nome)")
         .order("data", { ascending: false });
       if (error) throw error;
       return data;
