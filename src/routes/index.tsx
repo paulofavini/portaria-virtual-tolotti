@@ -258,10 +258,10 @@ function Dashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <SectionCard title="Avisos do dia" icon={Bell} count={avisosHoje.length} to="/avisos" accent="primary">
           {avisosHoje.length === 0 ? (
-            <Empty>Nenhum aviso para hoje</Empty>
+            <Empty>Nenhum aviso hoje</Empty>
           ) : (
             avisosHoje.slice(0, 5).map((a) => {
               const tone: "destructive" | "warning" | "primary" =
@@ -291,27 +291,9 @@ function Dashboard() {
           )}
         </SectionCard>
 
-        <SectionCard title="Eventos do dia" icon={PartyPopper} count={eventosHoje.length} to="/eventos" accent="success">
-          {eventosHoje.length === 0 ? (
-            <Empty>Sem eventos hoje.</Empty>
-          ) : (
-            eventosHoje.map((e) => (
-              <Row
-                key={e.id}
-                item={{
-                  id: e.id,
-                  title: e.titulo ?? e.descricao ?? "Evento",
-                  subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · ${formatUnidadeBloco(e.unidades)}` : ""}${e.local ? ` · ${e.local}` : ""}`,
-                  meta: e.horario ? `${fmtDate(e.data)} ${String(e.horario).slice(0,5)}` : fmtDate(e.data),
-                }}
-              />
-            ))
-          )}
-        </SectionCard>
-
         <SectionCard title="Mudanças do dia" icon={Truck} count={mudancasHoje.length} to="/mudancas" accent="primary">
           {mudancasHoje.length === 0 ? (
-            <Empty>Nenhuma mudança hoje.</Empty>
+            <Empty>Nenhuma mudança hoje</Empty>
           ) : (
             mudancasHoje.map((m) => (
               <Row
@@ -327,61 +309,17 @@ function Dashboard() {
           )}
         </SectionCard>
 
-        {/* Últimas mudanças passadas — contexto histórico discreto */}
-        <div
-          className="bg-card rounded-xl border border-border overflow-hidden opacity-90"
-          style={{ boxShadow: "var(--shadow-card)" }}
-        >
-          <div className="h-1 bg-muted" />
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-semibold text-foreground/80">Últimas mudanças</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                  {mudancasPassadas.length}
-                </span>
-              </div>
-              <Link
-                to="/mudancas"
-                search={{ periodo: "passadas" }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Ver mais
-              </Link>
-            </div>
-            {mudancasPassadas.length === 0 ? (
-              <Empty>Sem mudanças anteriores.</Empty>
-            ) : (
-              <div className="space-y-1 opacity-80">
-                {mudancasPassadas.map((m) => (
-                  <Row
-                    key={`past-${m.id}`}
-                    item={{
-                      id: m.id,
-                      title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
-                      subtitle: `${formatUnidadeBloco(m.unidades)}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
-                      meta: fmtDate(m.data),
-                      badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
         <SectionCard
-          title="Ocorrências recentes"
+          title="Ocorrências do dia"
           icon={AlertTriangle}
-          count={ocorrenciasRecentes.length}
+          count={ocorrenciasHoje.length}
           to="/ocorrencias"
           accent="warning"
         >
-          {ocorrenciasRecentes.length === 0 ? (
-            <Empty>Nenhuma ocorrência cadastrada.</Empty>
+          {ocorrenciasHoje.length === 0 ? (
+            <Empty>Nenhuma ocorrência hoje</Empty>
           ) : (
-            ocorrenciasRecentes.map((o) => (
+            ocorrenciasHoje.map((o) => (
               <Row
                 key={o.id}
                 item={{
@@ -392,37 +330,6 @@ function Dashboard() {
                 }}
               />
             ))
-          )}
-        </SectionCard>
-
-        <SectionCard title="Próximos eventos & mudanças" icon={Clock} count={eventosFuturos.length + mudancasFuturas.length} to="/eventos" accent="primary">
-          {eventosFuturos.length + mudancasFuturas.length === 0 ? (
-            <Empty>Nada agendado.</Empty>
-          ) : (
-            <>
-              {eventosFuturos.map((e) => (
-                <Row
-                  key={`e-${e.id}`}
-                  item={{
-                    id: e.id,
-                    title: `Evento — ${e.titulo ?? e.descricao ?? ""}`,
-                    subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · Unidade ${e.unidades.numero}` : ""}`,
-                    meta: fmtDate(e.data),
-                  }}
-                />
-              ))}
-              {mudancasFuturas.map((m) => (
-                <Row
-                  key={`m-${m.id}`}
-                  item={{
-                    id: m.id,
-                    title: `Mudança ${m.tipo === "entrada" ? "(entrada)" : "(saída)"}`,
-                    subtitle: `${m.condominios?.nome} · Unidade ${m.unidades?.numero}`,
-                    meta: fmtDate(m.data),
-                  }}
-                />
-              ))}
-            </>
           )}
         </SectionCard>
       </div>
