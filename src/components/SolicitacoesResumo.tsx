@@ -55,6 +55,7 @@ export function SolicitacoesResumo() {
   const total = items.length;
 
   // Ordena: pendente primeiro, depois em_andamento; dentro de cada grupo, mais recente primeiro.
+  // Limita a 4 cards no dashboard.
   const ordered = useMemo(() => {
     const rank: Record<StatusSolicitacao, number> = {
       pendente: 0,
@@ -66,7 +67,7 @@ export function SolicitacoesResumo() {
       const r = rank[a.status] - rank[b.status];
       if (r !== 0) return r;
       return (b.data_solicitacao ?? "").localeCompare(a.data_solicitacao ?? "");
-    });
+    }).slice(0, 4);
   }, [items]);
 
   const accent = pendentes.length > 0 ? "bg-destructive" : naoPagos.length > 0 ? "bg-warning" : "bg-primary";
@@ -112,7 +113,7 @@ export function SolicitacoesResumo() {
             Nenhuma solicitação no momento
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 max-h-[520px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {ordered.map((s) => {
               const statusInfo =
                 s.status === "pendente"
