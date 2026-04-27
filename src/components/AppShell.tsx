@@ -82,8 +82,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="h-16 px-4 flex items-center gap-3 border-b border-sidebar-border">
-          <Logo size="sm" onDark />
+        <div className="h-20 px-5 flex items-center gap-3 border-b border-sidebar-border">
+          <Logo onDark className="h-10" />
           <div className="min-w-0">
             <div className="text-sm font-bold leading-tight truncate">Portaria Virtual</div>
             <div className="text-[11px] text-sidebar-foreground/70 truncate">Grupo Tolotti</div>
@@ -134,9 +134,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative w-72 bg-sidebar text-sidebar-foreground flex flex-col">
-            <div className="h-16 px-4 flex items-center justify-between border-b border-sidebar-border">
-              <div className="flex items-center gap-2 min-w-0">
-                <Logo size="sm" onDark />
+            <div className="h-20 px-5 flex items-center justify-between border-b border-sidebar-border">
+              <div className="flex items-center gap-3 min-w-0">
+                <Logo onDark className="h-10" />
                 <span className="font-bold truncate">Portaria Tolotti</span>
               </div>
               <button onClick={() => setOpen(false)} className="p-1 shrink-0">
