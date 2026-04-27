@@ -553,12 +553,12 @@ function AvisoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="a_desc">Descrição *</Label>
+            <Label htmlFor="a_desc">Descrição</Label>
             <Textarea
               id="a_desc"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Detalhe o aviso..."
+              placeholder="Detalhe o aviso (opcional)"
               rows={4}
             />
           </div>
