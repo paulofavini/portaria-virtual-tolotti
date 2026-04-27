@@ -129,7 +129,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   });
 
   const { data: eventos, isLoading } = useQuery({
-    queryKey: ["eventos"],
+    queryKey: ["eventos", "full"],
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async () => {
@@ -140,6 +140,8 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
         )
         .order("data", { ascending: false })
         .order("horario", { ascending: false });
+      // eslint-disable-next-line no-console
+      console.log("[EventosManager] query result", { count: data?.length, error, data });
       if (error) throw error;
       const list = (data ?? []) as unknown as EventoRow[];
       const ids = Array.from(new Set(list.map((a) => a.created_by).filter(Boolean) as string[]));
@@ -187,7 +189,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   });
 
   const filtered = useMemo(() => {
-    return (eventos ?? []).filter((e) => {
+    const result = (eventos ?? []).filter((e) => {
       if (filtroCondo !== "todos" && e.condominio_id !== filtroCondo) return false;
       if (buscaDebounced) {
         const hay = `${e.titulo ?? ""} ${e.descricao ?? ""} ${e.local ?? ""} ${e.condominios?.nome ?? ""}`.toLowerCase();
@@ -195,6 +197,14 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
       }
       return true;
     });
+    // eslint-disable-next-line no-console
+    console.log("[EventosManager] filtered", {
+      total: eventos?.length ?? 0,
+      filtered: result.length,
+      filtroCondo,
+      buscaDebounced,
+    });
+    return result;
   }, [eventos, filtroCondo, buscaDebounced]);
 
   const handleClose = () => {
@@ -484,7 +494,7 @@ function EventoDialog({
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
       await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
-      await qc.refetchQueries({ queryKey: ["eventos"] });
+      await qc.refetchQueries({ queryKey: ["eventos", "full"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
