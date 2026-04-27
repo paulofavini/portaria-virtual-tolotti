@@ -37,7 +37,7 @@ type TipoAviso = "informativo" | "urgente" | "manutencao";
 type AvisoRow = {
   id: string;
   titulo: string | null;
-  descricao: string;
+  descricao: string | null;
   tipo: TipoAviso;
   data: string;
   ativo: boolean;
