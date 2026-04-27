@@ -188,9 +188,6 @@ export function LiberacoesManager() {
 
   const [filterCondo, setFilterCondo] = useState<string>("all");
   const [filterTipo, setFilterTipo] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterFrom, setFilterFrom] = useState<string>("");
-  const [filterTo, setFilterTo] = useState<string>("");
   const [search, setSearch] = useState("");
 
   const [open, setOpen] = useState(false);
@@ -210,6 +207,25 @@ export function LiberacoesManager() {
     },
   });
 
+  // Profiles for audit metadata ("Criado por")
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles", "names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nome_completo, email");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const profileMap = useMemo(() => {
+    const m = new Map<string, string>();
+    (profiles as any[]).forEach((p) => {
+      m.set(p.id, p.nome_completo || p.email || "Usuário");
+    });
+    return m;
+  }, [profiles]);
+
   const condoMap = useMemo(() => {
     const m = new Map<string, string>();
     condominios.forEach((c: any) => m.set(c.id, c.nome));
@@ -228,13 +244,12 @@ export function LiberacoesManager() {
   const { data: blocos = [] } = useBlocos(form.condominio_id || undefined);
   const { data: unidades = [] } = useUnidades(form.autorizador_unidade_bloco_id || undefined);
 
-  const filtered = useMemo(() => {
+  // Apenas ativas no painel principal. Aplica filtros + busca.
+  const filteredAtivas = useMemo(() => {
     return liberacoes.filter((r) => {
+      if (r.status !== "ativa") return false;
       if (filterCondo !== "all" && r.condominio_id !== filterCondo) return false;
       if (filterTipo !== "all" && r.tipo_visita !== filterTipo) return false;
-      if (filterStatus !== "all" && r.status !== filterStatus) return false;
-      if (filterFrom && r.created_at < filterFrom) return false;
-      if (filterTo && r.created_at > `${filterTo}T23:59:59`) return false;
       if (search) {
         const s = search.trim().toLowerCase();
         const hay = `${r.visitante_nome} ${r.visitante_documento} ${r.palavra_chave ?? ""} ${r.visitante_empresa ?? ""} ${r.autorizador_morador_nome ?? ""} ${r.autorizador_sindico_nome ?? ""} ${r.autorizador_empresa_nome ?? ""}`.toLowerCase();
@@ -242,7 +257,65 @@ export function LiberacoesManager() {
       }
       return true;
     });
-  }, [liberacoes, filterCondo, filterTipo, filterStatus, filterFrom, filterTo, search]);
+  }, [liberacoes, filterCondo, filterTipo, search]);
+
+  const todayIso = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  const sections = useMemo(() => {
+    const hoje: LiberacaoRow[] = [];
+    const periodo: LiberacaoRow[] = [];
+    const permanente: LiberacaoRow[] = [];
+
+    for (const r of filteredAtivas) {
+      // 1) Hoje: tipo única (created hoje) OU período cobrindo hoje
+      const isUnicaHoje =
+        r.tipo_validade === "unica" &&
+        r.created_at.slice(0, 10) === todayIso;
+      const isPeriodoHoje =
+        r.tipo_validade === "periodo" &&
+        !!r.data_inicio &&
+        !!r.data_fim &&
+        r.data_inicio <= todayIso &&
+        r.data_fim >= todayIso;
+
+      if (isUnicaHoje || isPeriodoHoje) {
+        hoje.push(r);
+        continue;
+      }
+
+      // 2) Período (futuras ou em andamento já não capturadas)
+      if (r.tipo_validade === "periodo") {
+        periodo.push(r);
+        continue;
+      }
+
+      // 3) Permanente
+      if (r.tipo_validade === "permanente") {
+        permanente.push(r);
+      }
+    }
+
+    // Ordenações
+    hoje.sort((a, b) => (b.created_at > a.created_at ? 1 : -1));
+    periodo.sort((a, b) => {
+      const ax = a.data_fim ?? "9999-12-31";
+      const bx = b.data_fim ?? "9999-12-31";
+      return ax < bx ? -1 : ax > bx ? 1 : 0;
+    });
+    permanente.sort((a, b) => {
+      const ax = (a.autorizador_empresa_nome || a.visitante_nome || "").toLowerCase();
+      const bx = (b.autorizador_empresa_nome || b.visitante_nome || "").toLowerCase();
+      return ax < bx ? -1 : ax > bx ? 1 : 0;
+    });
+
+    return { hoje, periodo, permanente };
+  }, [filteredAtivas, todayIso]);
 
   const openCreate = () => {
     setForm(emptyForm());
