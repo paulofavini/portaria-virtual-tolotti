@@ -44,6 +44,9 @@ type MoradorWithRel = {
   nome: string;
   telefone: string | null;
   unidade_id: string;
+  created_at?: string | null;
+  created_by?: string | null;
+  creator?: { id: string; nome_completo: string | null } | null;
   unidades: {
     id: string;
     numero: string;
@@ -82,12 +85,26 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
       const { data, error } = await supabase
         .from("moradores")
         .select(
-          "id, nome, telefone, unidade_id, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
+          "id, nome, telefone, unidade_id, created_at, created_by, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
         )
         .eq("unidades.blocos.condominio_id", condominioId)
         .order("nome");
       if (error) throw error;
-      return data as unknown as MoradorWithRel[];
+      const list = (data ?? []) as unknown as MoradorWithRel[];
+      const creatorIds = Array.from(
+        new Set(list.map((m) => m.created_by).filter(Boolean) as string[]),
+      );
+      if (creatorIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, nome_completo")
+          .in("id", creatorIds);
+        const byId = new Map((profs ?? []).map((p) => [p.id, p]));
+        for (const m of list) {
+          if (m.created_by) m.creator = byId.get(m.created_by) ?? null;
+        }
+      }
+      return list;
     },
   });
 
