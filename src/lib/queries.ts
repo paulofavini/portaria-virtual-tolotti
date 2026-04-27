@@ -71,10 +71,14 @@ export const useAvisos = () =>
   useQuery({
     queryKey: ["avisos"],
     queryFn: async () => {
+      const nowIso = new Date().toISOString();
       const { data, error } = await supabase
         .from("avisos")
         .select("*, condominios(nome), unidades(numero, blocos(nome))")
-        .order("data", { ascending: false });
+        .eq("ativo", true)
+        .or(`data_expiracao.is.null,data_expiracao.gt.${nowIso}`)
+        .order("fixado", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
