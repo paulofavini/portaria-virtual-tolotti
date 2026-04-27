@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
+import { MoradoresManager } from "@/components/MoradoresManager";
 
 export const Route = createFileRoute("/condominios/$id")({
   component: CondoDetailPage,
@@ -45,6 +46,10 @@ function CondoDetailPage() {
             <ContactCard role="Subsíndico" name={data.subsindico_nome} phone={data.subsindico_telefone} />
             <ContactCard role="Zelador" name={data.zelador_nome} phone={data.zelador_telefone} />
             <ContactCard role="Limpeza" name={data.limpeza_nome} phone={data.limpeza_telefone} />
+          </div>
+
+          <div className="mt-8">
+            <MoradoresManager condominioId={data.id} />
           </div>
         </>
       )}
