@@ -145,6 +145,18 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   const baseEventos = (eventosQuery.data ?? []) as unknown as EventoRow[];
   const isLoading = eventosQuery.isLoading;
 
+  // Log de diagnóstico — confirma que a query está retornando dados
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[EventosManager] useEventos →", {
+      isLoading: eventosQuery.isLoading,
+      isFetching: eventosQuery.isFetching,
+      error: eventosQuery.error,
+      total: baseEventos.length,
+      ids: baseEventos.map((e) => e.id),
+    });
+  }, [eventosQuery.isLoading, eventosQuery.isFetching, eventosQuery.error, baseEventos]);
+
   // Enriquecer com nome do criador (perfis) — não bloqueia a renderização
   const { data: creatorsById } = useQuery({
     queryKey: ["eventos", "creators", baseEventos.map((e) => e.created_by).filter(Boolean).join(",")],
@@ -259,8 +271,20 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
         <div className="bg-card border border-dashed border-border rounded-xl p-10 text-center">
           <h3 className="font-semibold text-foreground">Nenhum evento encontrado</h3>
           <p className="text-sm text-muted-foreground mt-1">
-            {canManageOperational ? "Clique em + Novo evento para começar." : "Aguarde novos eventos."}
+            {(eventos?.length ?? 0) > 0
+              ? "Os filtros aplicados não retornaram resultados."
+              : canManageOperational ? "Clique em + Novo evento para começar." : "Aguarde novos eventos."}
           </p>
+          {(eventos?.length ?? 0) > 0 && (filtroCondo !== "todos" || busca) && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => { setFiltroCondo("todos"); setBusca(""); }}
+            >
+              Limpar filtros
+            </Button>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
