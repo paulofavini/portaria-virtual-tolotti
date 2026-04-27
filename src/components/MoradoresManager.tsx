@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -50,6 +57,18 @@ type MoradorWithRel = {
   veiculos: Veiculo[];
 };
 
+function reportError(scope: string, error: unknown) {
+  // eslint-disable-next-line no-console
+  console.error(`[MoradoresManager] ${scope}:`, error);
+  const msg =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+      ? String((error as { message: unknown }).message)
+      : "Erro desconhecido";
+  toast.error(`Erro: ${scope}`, { description: msg });
+}
+
 export function MoradoresManager({ condominioId }: { condominioId: string }) {
   const qc = useQueryClient();
   const { canManageOperational } = useAuth();
@@ -84,7 +103,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
       qc.invalidateQueries({ queryKey: ["moradores"] });
       setRemoving(null);
     },
-    onError: (e: Error) => toast.error("Erro ao remover", { description: e.message }),
+    onError: (e) => reportError("Remover morador", e),
   });
 
   const filtered = useMemo(() => {
@@ -237,10 +256,79 @@ function MoradorDialog({
   const isEdit = !!morador;
   const [nome, setNome] = useState(morador?.nome ?? "");
   const [telefone, setTelefone] = useState(morador?.telefone ?? "");
-  const [bloco, setBloco] = useState(morador?.unidades?.blocos?.nome ?? "");
-  const [unidade, setUnidade] = useState(morador?.unidades?.numero ?? "");
+  const [blocoId, setBlocoId] = useState<string>(morador?.unidades?.bloco_id ?? "");
+  const [unidadeId, setUnidadeId] = useState<string>(morador?.unidade_id ?? "");
   const [veiculos, setVeiculos] = useState<Veiculo[]>(morador?.veiculos ?? []);
   const [saving, setSaving] = useState(false);
+
+  // Carregar blocos do condomínio
+  const blocosQ = useQuery({
+    queryKey: ["blocos", condominioId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blocos")
+        .select("id, nome")
+        .eq("condominio_id", condominioId)
+        .order("nome");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Carregar unidades do bloco selecionado
+  const unidadesQ = useQuery({
+    queryKey: ["unidades", blocoId],
+    enabled: !!blocoId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("unidades")
+        .select("id, numero")
+        .eq("bloco_id", blocoId)
+        .order("numero");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Mutation: criar bloco
+  const criarBloco = useMutation({
+    mutationFn: async (nomeBloco: string) => {
+      const { data, error } = await supabase
+        .from("blocos")
+        .insert({ condominio_id: condominioId, nome: nomeBloco })
+        .select("id, nome")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Bloco "${data.nome}" criado`);
+      qc.invalidateQueries({ queryKey: ["blocos"] });
+      setBlocoId(data.id);
+      setUnidadeId("");
+    },
+    onError: (e) => reportError("Criar bloco", e),
+  });
+
+  // Mutation: criar unidade
+  const criarUnidade = useMutation({
+    mutationFn: async (numero: string) => {
+      if (!blocoId) throw new Error("Selecione um bloco antes de criar a unidade");
+      const { data, error } = await supabase
+        .from("unidades")
+        .insert({ bloco_id: blocoId, numero })
+        .select("id, numero")
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Unidade ${data.numero} criada`);
+      qc.invalidateQueries({ queryKey: ["unidades", blocoId] });
+      setUnidadeId(data.id);
+    },
+    onError: (e) => reportError("Criar unidade", e),
+  });
 
   const updateVeiculo = (i: number, k: keyof Veiculo, v: string) =>
     setVeiculos((arr) => arr.map((x, idx) => (idx === i ? { ...x, [k]: v } : x)));
@@ -256,56 +344,18 @@ function MoradorDialog({
       toast.error("Informe o nome do morador");
       return;
     }
-    if (!bloco.trim() || !unidade.trim()) {
-      toast.error("Informe bloco e unidade");
+    if (!blocoId) {
+      toast.error("Selecione ou crie um bloco");
+      return;
+    }
+    if (!unidadeId) {
+      toast.error("Selecione ou crie uma unidade");
       return;
     }
 
     setSaving(true);
     try {
-      // 1. Garantir bloco
-      const blocoNome = bloco.trim();
-      const { data: blocoExist, error: blocoFindErr } = await supabase
-        .from("blocos")
-        .select("id")
-        .eq("condominio_id", condominioId)
-        .eq("nome", blocoNome)
-        .maybeSingle();
-      if (blocoFindErr) throw blocoFindErr;
-
-      let blocoId = blocoExist?.id;
-      if (!blocoId) {
-        const { data: newBloco, error } = await supabase
-          .from("blocos")
-          .insert({ condominio_id: condominioId, nome: blocoNome })
-          .select("id")
-          .single();
-        if (error) throw error;
-        blocoId = newBloco.id;
-      }
-
-      // 2. Garantir unidade
-      const unidadeNome = unidade.trim();
-      const { data: unidadeExist, error: uFindErr } = await supabase
-        .from("unidades")
-        .select("id")
-        .eq("bloco_id", blocoId)
-        .eq("numero", unidadeNome)
-        .maybeSingle();
-      if (uFindErr) throw uFindErr;
-
-      let unidadeId = unidadeExist?.id;
-      if (!unidadeId) {
-        const { data: newUnidade, error } = await supabase
-          .from("unidades")
-          .insert({ bloco_id: blocoId, numero: unidadeNome })
-          .select("id")
-          .single();
-        if (error) throw error;
-        unidadeId = newUnidade.id;
-      }
-
-      // 3. Inserir / atualizar morador
+      // 1. Inserir / atualizar morador
       let moradorId = morador?.id;
       if (isEdit && moradorId) {
         const { error } = await supabase
@@ -331,7 +381,7 @@ function MoradorDialog({
         moradorId = newMorador.id;
       }
 
-      // 4. Sincronizar veículos
+      // 2. Sincronizar veículos
       const validVeiculos = veiculos.filter((v) => v.placa.trim());
       const existingIds = morador?.veiculos.map((v) => v.id).filter(Boolean) as string[] | undefined;
       const keptIds = validVeiculos.map((v) => v.id).filter(Boolean) as string[];
@@ -368,8 +418,7 @@ function MoradorDialog({
       qc.invalidateQueries({ queryKey: ["moradores"] });
       onClose();
     } catch (e) {
-      const err = e as Error;
-      toast.error("Erro ao salvar", { description: err.message });
+      reportError("Salvar morador", e);
     } finally {
       setSaving(false);
     }
@@ -391,23 +440,30 @@ function MoradorDialog({
             <Label htmlFor="m_tel">Telefone</Label>
             <Input id="m_tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
           </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="m_bloco">Bloco *</Label>
-              <Input
-                id="m_bloco"
-                value={bloco}
-                onChange={(e) => setBloco(e.target.value)}
-                placeholder="Ex.: A"
+              <Label>Bloco *</Label>
+              <BlocoPicker
+                blocos={blocosQ.data ?? []}
+                value={blocoId}
+                onChange={(v) => {
+                  setBlocoId(v);
+                  setUnidadeId("");
+                }}
+                onCreate={(nome) => criarBloco.mutate(nome)}
+                creating={criarBloco.isPending}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="m_unid">Unidade *</Label>
-              <Input
-                id="m_unid"
-                value={unidade}
-                onChange={(e) => setUnidade(e.target.value)}
-                placeholder="Ex.: 101"
+              <Label>Unidade *</Label>
+              <UnidadePicker
+                unidades={unidadesQ.data ?? []}
+                value={unidadeId}
+                onChange={setUnidadeId}
+                onCreate={(numero) => criarUnidade.mutate(numero)}
+                creating={criarUnidade.isPending}
+                disabled={!blocoId}
               />
             </div>
           </div>
@@ -478,5 +534,156 @@ function MoradorDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function BlocoPicker({
+  blocos,
+  value,
+  onChange,
+  onCreate,
+  creating,
+}: {
+  blocos: { id: string; nome: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  onCreate: (nome: string) => void;
+  creating: boolean;
+}) {
+  const [novo, setNovo] = useState("");
+  const [showNew, setShowNew] = useState(false);
+
+  if (showNew) {
+    return (
+      <div className="flex gap-1">
+        <Input
+          autoFocus
+          value={novo}
+          onChange={(e) => setNovo(e.target.value)}
+          placeholder="Ex.: A"
+          className="h-9"
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => {
+            if (novo.trim()) {
+              onCreate(novo.trim());
+              setNovo("");
+              setShowNew(false);
+            }
+          }}
+          disabled={creating || !novo.trim()}
+        >
+          OK
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setShowNew(false)}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-1">
+      <Select value={value || "_none"} onValueChange={(v) => onChange(v === "_none" ? "" : v)}>
+        <SelectTrigger className="flex-1">
+          <SelectValue placeholder="Selecione..." />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_none">— selecione —</SelectItem>
+          {blocos.map((b) => (
+            <SelectItem key={b.id} value={b.id}>
+              {b.nome}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button type="button" size="icon" variant="outline" onClick={() => setShowNew(true)} title="Novo bloco">
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function UnidadePicker({
+  unidades,
+  value,
+  onChange,
+  onCreate,
+  creating,
+  disabled,
+}: {
+  unidades: { id: string; numero: string }[];
+  value: string;
+  onChange: (v: string) => void;
+  onCreate: (numero: string) => void;
+  creating: boolean;
+  disabled: boolean;
+}) {
+  const [novo, setNovo] = useState("");
+  const [showNew, setShowNew] = useState(false);
+
+  if (showNew) {
+    return (
+      <div className="flex gap-1">
+        <Input
+          autoFocus
+          value={novo}
+          onChange={(e) => setNovo(e.target.value)}
+          placeholder="Ex.: 101"
+          className="h-9"
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => {
+            if (novo.trim()) {
+              onCreate(novo.trim());
+              setNovo("");
+              setShowNew(false);
+            }
+          }}
+          disabled={creating || !novo.trim()}
+        >
+          OK
+        </Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => setShowNew(false)}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-1">
+      <Select
+        value={value || "_none"}
+        onValueChange={(v) => onChange(v === "_none" ? "" : v)}
+        disabled={disabled}
+      >
+        <SelectTrigger className="flex-1">
+          <SelectValue placeholder={disabled ? "Selecione um bloco" : "Selecione..."} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="_none">— selecione —</SelectItem>
+          {unidades.map((u) => (
+            <SelectItem key={u.id} value={u.id}>
+              {u.numero}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        onClick={() => setShowNew(true)}
+        disabled={disabled}
+        title="Nova unidade"
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
   );
 }

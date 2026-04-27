@@ -1,0 +1,1 @@
+DELETE FROM public.blocos WHERE nome = 'TEST_AUDIT';
