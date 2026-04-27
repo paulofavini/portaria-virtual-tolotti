@@ -716,10 +716,16 @@ export function ConvidadosDialog({
 
   const filtered = useMemo(() => {
     const q = busca.trim().toLowerCase();
-    if (!q) return convidados ?? [];
-    return (convidados ?? []).filter((c) =>
-      `${c.nome} ${c.documento ?? ""}`.toLowerCase().includes(q),
-    );
+    const base = q
+      ? (convidados ?? []).filter((c) =>
+          `${c.nome} ${c.documento ?? ""}`.toLowerCase().includes(q),
+        )
+      : (convidados ?? []);
+    // Ordenação: não-presentes primeiro, depois presentes (mantendo ordem de criação dentro de cada grupo)
+    return [...base].sort((a, b) => {
+      if (a.presente === b.presente) return 0;
+      return a.presente ? 1 : -1;
+    });
   }, [convidados, busca]);
 
   const total = convidados?.length ?? 0;
@@ -798,17 +804,40 @@ export function ConvidadosDialog({
             <ul className="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1">
               {filtered.map((c) => {
                 const disabled = togglePresenca.isPending && togglePresenca.variables?.id === c.id;
+                const handleToggle = () => {
+                  if (!canManageOperational || disabled) return;
+                  // Confirmação leve ao desmarcar para evitar clique acidental
+                  if (c.presente) {
+                    const ok = window.confirm(`Desmarcar presença de ${c.nome}?`);
+                    if (!ok) return;
+                  }
+                  togglePresenca.mutate(c);
+                };
                 return (
                   <li
                     key={c.id}
+                    onClick={handleToggle}
+                    role={canManageOperational ? "button" : undefined}
+                    tabIndex={canManageOperational ? 0 : undefined}
+                    onKeyDown={(e) => {
+                      if (!canManageOperational) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleToggle();
+                      }
+                    }}
                     className={cn(
                       "flex items-center gap-3 rounded-lg border border-border p-3 transition-all",
+                      canManageOperational && "cursor-pointer hover:border-primary/40 hover:bg-muted/30",
                       c.presente && "bg-success/5 border-success/30 opacity-70",
                     )}
                   >
                     <button
                       type="button"
-                      onClick={() => canManageOperational && !disabled && togglePresenca.mutate(c)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggle();
+                      }}
                       disabled={!canManageOperational || disabled}
                       className={cn(
                         "h-7 w-7 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
@@ -844,7 +873,10 @@ export function ConvidadosDialog({
                         size="icon"
                         variant="ghost"
                         className="text-destructive hover:text-destructive shrink-0"
-                        onClick={() => removeMutation.mutate(c.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeMutation.mutate(c.id);
+                        }}
                         disabled={removeMutation.isPending}
                         title="Remover convidado"
                       >
