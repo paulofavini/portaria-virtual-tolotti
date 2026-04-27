@@ -479,7 +479,6 @@ function AvisoDialog({
     if (saving) return;
     if (!condominioId) { toast.error("Selecione um condomínio"); return; }
     if (!titulo.trim()) { toast.error("Informe o título"); return; }
-    if (!descricao.trim()) { toast.error("Informe a descrição"); return; }
 
     let dataExpISO: string | null = null;
     if (dataExpiracao) {
@@ -493,9 +492,10 @@ function AvisoDialog({
 
     setSaving(true);
     try {
+      const descTrim = descricao.trim();
       const payload = {
         titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        descricao: descTrim ? descTrim : null,
         tipo,
         condominio_id: condominioId,
         data,
