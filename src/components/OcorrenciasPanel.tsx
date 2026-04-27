@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useOcorrenciasByCondo } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { formatUnidadeBloco } from "@/lib/address";
 import {
   Plus,
   AlertTriangle,
@@ -97,7 +98,7 @@ export function OcorrenciasPanel({ condominioId }: { condominioId: string }) {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {o.unidades && `Bl. ${o.unidades.blocos?.nome}/${o.unidades.numero}`}
+                    {o.unidades && formatUnidadeBloco(o.unidades)}
                     {o.moradores && ` · ${o.moradores.nome}`}
                   </p>
                   <p className="text-xs text-foreground/70 mt-1 line-clamp-2">{o.descricao}</p>
