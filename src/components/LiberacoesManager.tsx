@@ -456,6 +456,7 @@ export function LiberacoesManager() {
                     : r.origem === "sindico"
                     ? `Síndico: ${r.autorizador_sindico_nome ?? "—"}`
                     : `Empresa: ${r.autorizador_empresa_nome ?? "—"}`;
+                const alert = expiryAlert(r);
                 return (
                   <tr key={r.id} className="border-t">
                     <td className="px-4 py-3">
@@ -471,16 +472,34 @@ export function LiberacoesManager() {
                     </td>
                     <td className="px-4 py-3">{autor}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5">
-                        <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
-                        {validadeTexto(r)}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="inline-flex items-center gap-1.5">
+                          <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                          {validadeTexto(r)}
+                        </span>
+                        {alert === "today" && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-red-600">
+                            <AlertTriangle className="h-3 w-3" /> Expira hoje
+                          </span>
+                        )}
+                        {alert === "soon" && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600">
+                            <Clock className="h-3 w-3" /> Expira em breve
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       {r.palavra_chave ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(r.palavra_chave!)}
+                          className="inline-flex items-center gap-1 font-mono text-xs px-2 py-0.5 rounded bg-muted hover:bg-muted/70 transition-colors"
+                          title="Copiar palavra-chave"
+                        >
                           <KeyRound className="h-3 w-3" /> {r.palavra_chave}
-                        </span>
+                          <Copy className="h-3 w-3 opacity-60" />
+                        </button>
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
@@ -488,7 +507,19 @@ export function LiberacoesManager() {
                     <td className="px-4 py-3">{statusBadge(r.status)}</td>
                     <td className="px-4 py-3 text-right">
                       {canManage && (
-                        <div className="inline-flex gap-1">
+                        <div className="inline-flex gap-1 items-center">
+                          {r.status === "ativa" && (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white h-8"
+                              onClick={() => grantMutation.mutate(r.id)}
+                              disabled={grantMutation.isPending}
+                              title="Liberar acesso agora"
+                            >
+                              <DoorOpen className="h-4 w-4" /> Liberar
+                            </Button>
+                          )}
                           <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
                             <Pencil className="h-4 w-4" />
                           </Button>
