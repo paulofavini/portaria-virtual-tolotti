@@ -44,6 +44,8 @@ type MoradorWithRel = {
   nome: string;
   telefone: string | null;
   unidade_id: string;
+  vaga: string | null;
+  subsolo: string | null;
   created_at?: string | null;
   created_by?: string | null;
   creator?: { id: string; nome_completo: string | null } | null;
@@ -85,7 +87,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
       const { data, error } = await supabase
         .from("moradores")
         .select(
-          "id, nome, telefone, unidade_id, created_at, created_by, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
+          "id, nome, telefone, unidade_id, vaga, subsolo, created_at, created_by, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
         )
         .eq("unidades.blocos.condominio_id", condominioId)
         .order("nome");
@@ -183,6 +185,8 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
                           ? `Bloco ${m.unidades.blocos.nome} · `
                           : ""}
                         Unid. {m.unidades.numero}
+                        {m.vaga ? ` · Vaga ${m.vaga}` : ""}
+                        {m.subsolo ? ` · Subsolo ${m.subsolo}` : ""}
                       </span>
                     )}
                     {m.telefone && (
