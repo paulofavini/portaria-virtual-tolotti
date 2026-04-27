@@ -15,6 +15,7 @@ import { Route as OcorrenciasRouteImport } from './routes/ocorrencias'
 import { Route as MudancasRouteImport } from './routes/mudancas'
 import { Route as MoradoresRouteImport } from './routes/moradores'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LiberacoesRouteImport } from './routes/liberacoes'
 import { Route as FornecedoresRouteImport } from './routes/fornecedores'
 import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as CondominiosRouteImport } from './routes/condominios'
@@ -62,6 +63,11 @@ const MoradoresRoute = MoradoresRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiberacoesRoute = LiberacoesRouteImport.update({
+  id: '/liberacoes',
+  path: '/liberacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FornecedoresRoute = FornecedoresRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/condominios': typeof CondominiosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
+  '/liberacoes': typeof LiberacoesRoute
   '/login': typeof LoginRoute
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/chamados': typeof ChamadosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
+  '/liberacoes': typeof LiberacoesRoute
   '/login': typeof LoginRoute
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/condominios': typeof CondominiosRouteWithChildren
   '/eventos': typeof EventosRouteWithChildren
   '/fornecedores': typeof FornecedoresRoute
+  '/liberacoes': typeof LiberacoesRoute
   '/login': typeof LoginRoute
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/condominios'
     | '/eventos'
     | '/fornecedores'
+    | '/liberacoes'
     | '/login'
     | '/moradores'
     | '/mudancas'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/chamados'
     | '/eventos'
     | '/fornecedores'
+    | '/liberacoes'
     | '/login'
     | '/moradores'
     | '/mudancas'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/condominios'
     | '/eventos'
     | '/fornecedores'
+    | '/liberacoes'
     | '/login'
     | '/moradores'
     | '/mudancas'
@@ -318,6 +330,7 @@ export interface RootRouteChildren {
   CondominiosRoute: typeof CondominiosRouteWithChildren
   EventosRoute: typeof EventosRouteWithChildren
   FornecedoresRoute: typeof FornecedoresRoute
+  LiberacoesRoute: typeof LiberacoesRoute
   LoginRoute: typeof LoginRoute
   MoradoresRoute: typeof MoradoresRoute
   MudancasRoute: typeof MudancasRouteWithChildren
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/liberacoes': {
+      id: '/liberacoes'
+      path: '/liberacoes'
+      fullPath: '/liberacoes'
+      preLoaderRoute: typeof LiberacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fornecedores': {
@@ -596,6 +616,7 @@ const rootRouteChildren: RootRouteChildren = {
   CondominiosRoute: CondominiosRouteWithChildren,
   EventosRoute: EventosRouteWithChildren,
   FornecedoresRoute: FornecedoresRoute,
+  LiberacoesRoute: LiberacoesRoute,
   LoginRoute: LoginRoute,
   MoradoresRoute: MoradoresRoute,
   MudancasRoute: MudancasRouteWithChildren,
@@ -608,12 +629,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

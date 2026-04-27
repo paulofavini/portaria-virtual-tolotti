@@ -551,6 +551,87 @@ export type Database = {
         }
         Relationships: []
       }
+      liberacoes: {
+        Row: {
+          autorizador_empresa_nome: string | null
+          autorizador_morador_id: string | null
+          autorizador_morador_nome: string | null
+          autorizador_sindico_nome: string | null
+          autorizador_unidade_id: string | null
+          condominio_id: string
+          created_at: string
+          created_by: string | null
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          observacoes: string | null
+          origem: Database["public"]["Enums"]["origem_liberacao"]
+          palavra_chave: string | null
+          revogada_em: string | null
+          revogada_motivo: string | null
+          revogada_por: string | null
+          status: Database["public"]["Enums"]["status_liberacao"]
+          tipo_validade: Database["public"]["Enums"]["tipo_validade_liberacao"]
+          tipo_visita: string
+          updated_at: string
+          visitante_documento: string
+          visitante_empresa: string | null
+          visitante_nome: string
+        }
+        Insert: {
+          autorizador_empresa_nome?: string | null
+          autorizador_morador_id?: string | null
+          autorizador_morador_nome?: string | null
+          autorizador_sindico_nome?: string | null
+          autorizador_unidade_id?: string | null
+          condominio_id: string
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          origem: Database["public"]["Enums"]["origem_liberacao"]
+          palavra_chave?: string | null
+          revogada_em?: string | null
+          revogada_motivo?: string | null
+          revogada_por?: string | null
+          status?: Database["public"]["Enums"]["status_liberacao"]
+          tipo_validade?: Database["public"]["Enums"]["tipo_validade_liberacao"]
+          tipo_visita: string
+          updated_at?: string
+          visitante_documento: string
+          visitante_empresa?: string | null
+          visitante_nome: string
+        }
+        Update: {
+          autorizador_empresa_nome?: string | null
+          autorizador_morador_id?: string | null
+          autorizador_morador_nome?: string | null
+          autorizador_sindico_nome?: string | null
+          autorizador_unidade_id?: string | null
+          condominio_id?: string
+          created_at?: string
+          created_by?: string | null
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          observacoes?: string | null
+          origem?: Database["public"]["Enums"]["origem_liberacao"]
+          palavra_chave?: string | null
+          revogada_em?: string | null
+          revogada_motivo?: string | null
+          revogada_por?: string | null
+          status?: Database["public"]["Enums"]["status_liberacao"]
+          tipo_validade?: Database["public"]["Enums"]["tipo_validade_liberacao"]
+          tipo_visita?: string
+          updated_at?: string
+          visitante_documento?: string
+          visitante_empresa?: string | null
+          visitante_nome?: string
+        }
+        Relationships: []
+      }
       moradores: {
         Row: {
           created_at: string
@@ -979,9 +1060,11 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operador" | "sindico"
+      origem_liberacao: "morador" | "sindico" | "empresa"
       origem_orientacao: "interna" | "sindico" | "morador"
       prioridade_aviso: "normal" | "urgente"
       status_chamado: "pendente" | "em_andamento" | "concluido"
+      status_liberacao: "ativa" | "expirada" | "revogada"
       status_ocorrencia: "em_andamento" | "finalizada"
       status_solicitacao:
         | "pendente"
@@ -993,6 +1076,7 @@ export type Database = {
       tipo_mudanca: "entrada" | "saida"
       tipo_orientacao: "informativo" | "alerta" | "urgente"
       tipo_solicitacao: "tag" | "controle" | "imagens" | "acesso" | "outros"
+      tipo_validade_liberacao: "unica" | "periodo" | "permanente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1121,9 +1205,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "sindico"],
+      origem_liberacao: ["morador", "sindico", "empresa"],
       origem_orientacao: ["interna", "sindico", "morador"],
       prioridade_aviso: ["normal", "urgente"],
       status_chamado: ["pendente", "em_andamento", "concluido"],
+      status_liberacao: ["ativa", "expirada", "revogada"],
       status_ocorrencia: ["em_andamento", "finalizada"],
       status_solicitacao: [
         "pendente",
@@ -1136,6 +1222,7 @@ export const Constants = {
       tipo_mudanca: ["entrada", "saida"],
       tipo_orientacao: ["informativo", "alerta", "urgente"],
       tipo_solicitacao: ["tag", "controle", "imagens", "acesso", "outros"],
+      tipo_validade_liberacao: ["unica", "periodo", "permanente"],
     },
   },
 } as const
