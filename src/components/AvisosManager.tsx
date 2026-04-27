@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Bell, AlertTriangle, Wrench } from "lucide-react";
+import { Plus, Pencil, Trash2, Bell, AlertTriangle, Wrench, Pin, PinOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ type AvisoRow = {
   tipo: TipoAviso;
   data: string;
   ativo: boolean;
+  fixado: boolean;
   condominio_id: string;
   created_at: string | null;
   created_by: string | null;
@@ -91,7 +92,8 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("avisos")
-        .select("id, titulo, descricao, tipo, data, ativo, condominio_id, created_at, created_by, condominios(nome)")
+        .select("id, titulo, descricao, tipo, data, ativo, fixado, condominio_id, created_at, created_by, condominios(nome)")
+        .order("fixado", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
       const list = (data ?? []) as unknown as AvisoRow[];
@@ -104,6 +106,22 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
       }
       return list;
     },
+  });
+
+  const togglePin = useMutation({
+    mutationFn: async (a: AvisoRow) => {
+      const { error } = await supabase
+        .from("avisos")
+        .update({ fixado: !a.fixado })
+        .eq("id", a.id);
+      if (error) throw error;
+      return !a.fixado;
+    },
+    onSuccess: (now) => {
+      toast.success(now ? "Aviso fixado no topo" : "Aviso desafixado");
+      qc.invalidateQueries({ queryKey: ["avisos"] });
+    },
+    onError: (e) => reportError("Fixar/desafixar aviso", e),
   });
 
   const removeMutation = useMutation({
@@ -181,7 +199,10 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
             return (
               <div
                 key={a.id}
-                className="bg-card rounded-xl border border-border p-4"
+                className={cn(
+                  "bg-card rounded-xl border p-4",
+                  a.fixado ? "border-primary/40 ring-1 ring-primary/20" : "border-border",
+                )}
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
                 <div className="flex items-start gap-3">
@@ -195,6 +216,11 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      {a.fixado && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
+                          <Pin className="h-3 w-3" /> Fixado
+                        </span>
+                      )}
                       <h3 className="font-semibold text-foreground">{a.titulo || a.descricao.slice(0, 60)}</h3>
                       <span className={cn(
                         "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
@@ -233,6 +259,15 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                   </div>
                   {canManageOperational && (
                     <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        title={a.fixado ? "Desafixar" : "Fixar no topo"}
+                        onClick={() => togglePin.mutate(a)}
+                        disabled={togglePin.isPending}
+                      >
+                        {a.fixado ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                      </Button>
                       <Button size="icon" variant="ghost" onClick={() => setEditing(a)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
