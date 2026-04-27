@@ -112,8 +112,28 @@ export const useOcorrencias = () =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ocorrencias")
-        .select("*, condominios(nome), unidades(numero, blocos(nome)), moradores(nome)")
+        .select(
+          "id, tipo, descricao, nome_pessoa, documento, status, data_hora, imagem_url, condominio_id, unidade_id, morador_id, condominios(nome), unidades(numero, blocos(nome)), moradores(nome)",
+        )
         .order("data_hora", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+export const useOcorrenciasByCondo = (condominioId?: string) =>
+  useQuery({
+    queryKey: ["ocorrencias", "condo", condominioId],
+    enabled: !!condominioId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ocorrencias")
+        .select(
+          "id, tipo, descricao, nome_pessoa, documento, status, data_hora, imagem_url, unidade_id, morador_id, unidades(numero, blocos(nome)), moradores(nome)",
+        )
+        .eq("condominio_id", condominioId!)
+        .order("data_hora", { ascending: false })
+        .limit(50);
       if (error) throw error;
       return data;
     },
