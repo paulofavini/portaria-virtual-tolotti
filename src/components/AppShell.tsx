@@ -82,12 +82,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="h-20 px-5 flex items-center gap-3 border-b border-sidebar-border">
-          <Logo onDark className="h-10" />
-          <div className="min-w-0">
-            <div className="text-sm font-bold leading-tight truncate">Portaria Virtual</div>
-            <div className="text-[11px] text-sidebar-foreground/70 truncate">Grupo Tolotti</div>
-          </div>
+        <div className="pt-7 pb-5 px-4 flex flex-col items-center text-center border-b border-sidebar-border">
+          <Logo onDark className="h-14 mb-3" />
+          <div className="text-sm font-bold leading-tight">Portaria Virtual</div>
+          <div className="text-[11px] text-sidebar-foreground/70 mt-0.5">Grupo Tolotti</div>
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {NAV.map((item) => {
@@ -134,12 +132,15 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
           <aside className="relative w-72 bg-sidebar text-sidebar-foreground flex flex-col">
-            <div className="h-20 px-5 flex items-center justify-between border-b border-sidebar-border">
-              <div className="flex items-center gap-3 min-w-0">
-                <Logo onDark className="h-10" />
-                <span className="font-bold truncate">Portaria Tolotti</span>
-              </div>
-              <button onClick={() => setOpen(false)} className="p-1 shrink-0">
+            <div className="relative pt-7 pb-5 px-4 flex flex-col items-center text-center border-b border-sidebar-border">
+              <Logo onDark className="h-14 mb-3" />
+              <div className="text-sm font-bold leading-tight">Portaria Virtual</div>
+              <div className="text-[11px] text-sidebar-foreground/70 mt-0.5">Grupo Tolotti</div>
+              <button
+                onClick={() => setOpen(false)}
+                className="absolute top-3 right-3 p-1 rounded-md hover:bg-sidebar-accent"
+                aria-label="Fechar menu"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
