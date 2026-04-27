@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          field: string | null
+          id: string
+          module: string
+          new_value: string | null
+          old_value: string | null
+          record_id: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          field?: string | null
+          id?: string
+          module: string
+          new_value?: string | null
+          old_value?: string | null
+          record_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          field?: string | null
+          id?: string
+          module?: string
+          new_value?: string | null
+          old_value?: string | null
+          record_id?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       avisos: {
         Row: {
           ativo: boolean
