@@ -22,9 +22,9 @@ function AvisosPage() {
         title="Avisos"
         description="Comunicados e alertas do dia."
         action={
-          <Link to="/avisos/novo">
-            <Button><Plus className="h-4 w-4 mr-1" /> Novo aviso</Button>
-          </Link>
+          <Button asChild>
+            <Link to="/avisos/novo"><Plus className="h-4 w-4 mr-1" /> Novo aviso</Link>
+          </Button>
         }
       />
       {isLoading ? (
