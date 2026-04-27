@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Sidebar desktop */}
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-sidebar text-sidebar-foreground">
         <div className="pt-5 pb-4 px-3 flex items-center justify-center border-b border-sidebar-border">
@@ -183,7 +183,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div className="lg:pl-64 flex flex-col min-h-screen">
+      <div className="lg:pl-64 flex flex-col min-h-screen min-w-0">
         <header className="h-16 sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border flex items-center px-4 lg:px-8 gap-3">
           <button
             className="lg:hidden p-2 -ml-2 rounded-md hover:bg-muted"
@@ -225,7 +225,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </DropdownMenu>
         </header>
 
-        <main className="flex-1 px-4 lg:px-8 py-6 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="flex-1 px-4 lg:px-8 py-6 max-w-7xl w-full mx-auto min-w-0">{children}</main>
 
         {/* FAB */}
         <DropdownMenu>
