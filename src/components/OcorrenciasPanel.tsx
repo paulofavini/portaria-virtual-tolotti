@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,6 @@ const TIPO_META: Record<string, { label: string; icon: React.ComponentType<{ cla
 };
 
 export function OcorrenciasPanel({ condominioId }: { condominioId: string }) {
-  const navigate = useNavigate();
   const qc = useQueryClient();
   const { canManageOperational } = useAuth();
   const { data, isLoading } = useOcorrenciasByCondo(condominioId);
@@ -48,13 +47,10 @@ export function OcorrenciasPanel({ condominioId }: { condominioId: string }) {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h3 className="text-base font-semibold text-foreground">Ocorrências recentes</h3>
         {canManageOperational && (
-          <Button
-            size="sm"
-            onClick={() =>
-              navigate({ to: "/ocorrencias/novo", search: { condominioId } })
-            }
-          >
-            <Plus className="h-4 w-4 mr-1" /> Nova ocorrência
+          <Button size="sm" asChild>
+            <Link to="/ocorrencias/novo" search={{ condominioId }}>
+              <Plus className="h-4 w-4 mr-1" /> Nova ocorrência
+            </Link>
           </Button>
         )}
       </div>
