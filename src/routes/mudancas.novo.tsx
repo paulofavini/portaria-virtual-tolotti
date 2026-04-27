@@ -1,11 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader, EmptyState } from "@/components/PageHeader";
+import { RequireAuth } from "@/components/RequireAuth";
+import { PageHeader } from "@/components/PageHeader";
+import { MudancasManager } from "@/components/MudancasManager";
 
 export const Route = createFileRoute("/mudancas/novo")({
   component: () => (
-    <div className="pb-24">
-      <PageHeader title="Nova mudança" description="Em construção." />
-      <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
-    </div>
+    <RequireAuth>
+      <div className="pb-24">
+        <PageHeader
+          title="Nova mudança"
+          description="Cadastre uma nova entrada ou saída."
+        />
+        <MudancasManager openNew />
+      </div>
+    </RequireAuth>
   ),
 });

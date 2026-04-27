@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { PageHeader, EmptyState } from "@/components/PageHeader";
+import { PageHeader } from "@/components/PageHeader";
+import { MudancasManager } from "@/components/MudancasManager";
 
 function MudancasLayout() {
   const location = useLocation();
@@ -9,8 +10,11 @@ function MudancasLayout() {
     <RequireAuth>
       {location.pathname === "/mudancas" ? (
         <div className="pb-24">
-          <PageHeader title="Mudanças" description="Em construção." />
-          <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
+          <PageHeader
+            title="Mudanças"
+            description="Controle de entrada e saída de moradores."
+          />
+          <MudancasManager />
         </div>
       ) : (
         <Outlet />

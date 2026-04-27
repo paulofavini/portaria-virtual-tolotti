@@ -193,7 +193,13 @@ function Dashboard() {
   const eventosHoje = (eventos.data ?? []).filter((e) => isToday(e.data));
   const eventosFuturos = (eventos.data ?? []).filter((e) => isFuture(e.data)).slice(0, 5);
 
-  const mudancasHoje = (mudancas.data ?? []).filter((m) => isToday(m.data));
+  const mudancasHoje = (mudancas.data ?? [])
+    .filter((m) => isToday(m.data))
+    .sort((a, b) => {
+      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return tb - ta;
+    });
   const mudancasFuturas = (mudancas.data ?? []).filter((m) => isFuture(m.data)).slice(0, 5);
 
   const ocorrenciasHoje = (ocorrencias.data ?? []).filter((o) => isToday(o.data_hora));
@@ -316,7 +322,7 @@ function Dashboard() {
                 item={{
                   id: m.id,
                   title: `${m.tipo === "entrada" ? "Entrada" : "Saída"} — ${m.condominios?.nome ?? ""}`,
-                  subtitle: `Bloco ${m.unidades?.blocos?.nome} / Unidade ${m.unidades?.numero}`,
+                  subtitle: `Bloco ${m.unidades?.blocos?.nome} / Unidade ${m.unidades?.numero}${m.moradores?.nome ? ` · ${m.moradores.nome}` : ""}`,
                   badge: { label: m.tipo, tone: m.tipo === "entrada" ? "success" : "warning" },
                 }}
               />
