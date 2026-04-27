@@ -21,6 +21,7 @@ import {
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { OrientacoesMural } from "@/components/OrientacoesMural";
+import { SolicitacoesResumo } from "@/components/SolicitacoesResumo";
 
 export const Route = createFileRoute("/")({
   component: () => (
@@ -210,6 +211,9 @@ function Dashboard() {
 
       {/* Mural de orientações aos operadores */}
       <OrientacoesMural />
+
+      {/* Solicitações priorizadas para o plantão */}
+      <SolicitacoesResumo />
 
       {/* Quick stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
