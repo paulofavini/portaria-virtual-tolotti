@@ -510,6 +510,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "eventos_morador_id_fkey"
+            columns: ["morador_id"]
+            isOneToOne: false
+            referencedRelation: "moradores"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "eventos_unidade_id_fkey"
             columns: ["unidade_id"]
             isOneToOne: false
