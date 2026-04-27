@@ -551,6 +551,38 @@ export type Database = {
         }
         Relationships: []
       }
+      liberacao_acessos: {
+        Row: {
+          id: string
+          liberacao_id: string
+          liberado_em: string
+          liberado_por: string | null
+          observacao: string | null
+        }
+        Insert: {
+          id?: string
+          liberacao_id: string
+          liberado_em?: string
+          liberado_por?: string | null
+          observacao?: string | null
+        }
+        Update: {
+          id?: string
+          liberacao_id?: string
+          liberado_em?: string
+          liberado_por?: string | null
+          observacao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liberacao_acessos_liberacao_id_fkey"
+            columns: ["liberacao_id"]
+            isOneToOne: false
+            referencedRelation: "liberacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       liberacoes: {
         Row: {
           autorizador_empresa_nome: string | null
