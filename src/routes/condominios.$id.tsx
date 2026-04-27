@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { MoradoresManager } from "@/components/MoradoresManager";
+import { OcorrenciasPanel } from "@/components/OcorrenciasPanel";
 
 export const Route = createFileRoute("/condominios/$id")({
   component: CondoDetailPage,
@@ -50,6 +51,10 @@ function CondoDetailPage() {
 
           <div className="mt-8">
             <MoradoresManager condominioId={data.id} />
+          </div>
+
+          <div className="mt-8">
+            <OcorrenciasPanel condominioId={data.id} />
           </div>
         </>
       )}
