@@ -84,6 +84,13 @@ function CondosPage() {
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-foreground">{c.nome}</div>
                   {c.cnpj && <p className="text-xs text-muted-foreground">CNPJ: {c.cnpj}</p>}
+                  {(c.cidade || c.estado || c.bairro) && (
+                    <p className="text-xs text-muted-foreground">
+                      {[c.bairro, [c.cidade, c.estado].filter(Boolean).join(" - ")]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  )}
                   {c.sindico_nome && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Síndico: {c.sindico_nome}

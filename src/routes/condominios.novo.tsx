@@ -9,6 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/lib/auth-context";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UF_LIST, maskCep, fetchViaCep } from "@/lib/address";
 
 export const Route = createFileRoute("/condominios/novo")({
   component: NovoCondominioPage,
@@ -28,7 +36,14 @@ function NovoCondominioPage() {
     subsindico_telefone: "",
     zelador_nome: "",
     zelador_telefone: "",
+    cep: "",
+    logradouro: "",
+    numero: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
   });
+  const [cepLoading, setCepLoading] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -47,6 +62,31 @@ function NovoCondominioPage() {
 
   const update = (k: keyof typeof form, v: string) =>
     setForm((f) => ({ ...f, [k]: v }));
+
+  const handleCepChange = (raw: string) => {
+    const masked = maskCep(raw);
+    update("cep", masked);
+    if (masked.replace(/\D/g, "").length === 8) {
+      void lookupCep(masked);
+    }
+  };
+
+  const lookupCep = async (cep: string) => {
+    setCepLoading(true);
+    const data = await fetchViaCep(cep);
+    setCepLoading(false);
+    if (!data) {
+      toast.error("CEP não encontrado");
+      return;
+    }
+    setForm((f) => ({
+      ...f,
+      logradouro: data.logradouro || f.logradouro,
+      bairro: data.bairro || f.bairro,
+      cidade: data.localidade || f.cidade,
+      estado: data.uf || f.estado,
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +204,75 @@ function NovoCondominioPage() {
               onChange={(v) => update("zelador_telefone", v)}
               type="tel"
             />
+          </div>
+        </Section>
+
+        <Section title="Endereço">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="cep">
+                CEP {cepLoading && <span className="text-xs text-muted-foreground">(buscando...)</span>}
+              </Label>
+              <Input
+                id="cep"
+                value={form.cep}
+                onChange={(e) => handleCepChange(e.target.value)}
+                placeholder="00000-000"
+                inputMode="numeric"
+                maxLength={9}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-3">
+              <Label htmlFor="logradouro">Rua</Label>
+              <Input
+                id="logradouro"
+                value={form.logradouro}
+                onChange={(e) => update("logradouro", e.target.value)}
+                placeholder="Rua / Avenida"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-1">
+              <Label htmlFor="numero">Número</Label>
+              <Input
+                id="numero"
+                value={form.numero}
+                onChange={(e) => update("numero", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="bairro">Bairro</Label>
+              <Input
+                id="bairro"
+                value={form.bairro}
+                onChange={(e) => update("bairro", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-3">
+              <Label htmlFor="cidade">Cidade</Label>
+              <Input
+                id="cidade"
+                value={form.cidade}
+                onChange={(e) => update("cidade", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2 md:col-span-1">
+              <Label htmlFor="estado">UF</Label>
+              <Select
+                value={form.estado}
+                onValueChange={(v) => update("estado", v)}
+              >
+                <SelectTrigger id="estado">
+                  <SelectValue placeholder="UF" />
+                </SelectTrigger>
+                <SelectContent>
+                  {UF_LIST.map((uf) => (
+                    <SelectItem key={uf} value={uf}>
+                      {uf}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </Section>
 
