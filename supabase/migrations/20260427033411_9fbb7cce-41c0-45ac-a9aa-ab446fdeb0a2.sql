@@ -1,0 +1,1 @@
+ALTER TABLE public.moradores RENAME COLUMN subsolo TO pavimento;

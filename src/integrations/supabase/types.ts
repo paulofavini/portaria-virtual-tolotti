@@ -279,7 +279,7 @@ export type Database = {
           created_by: string | null
           id: string
           nome: string
-          subsolo: string | null
+          pavimento: string | null
           telefone: string | null
           unidade_id: string
           updated_at: string
@@ -290,7 +290,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           nome: string
-          subsolo?: string | null
+          pavimento?: string | null
           telefone?: string | null
           unidade_id: string
           updated_at?: string
@@ -301,7 +301,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           nome?: string
-          subsolo?: string | null
+          pavimento?: string | null
           telefone?: string | null
           unidade_id?: string
           updated_at?: string

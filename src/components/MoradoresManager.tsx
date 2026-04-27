@@ -45,7 +45,7 @@ type MoradorWithRel = {
   telefone: string | null;
   unidade_id: string;
   vaga: string | null;
-  subsolo: string | null;
+  pavimento: string | null;
   created_at?: string | null;
   created_by?: string | null;
   creator?: { id: string; nome_completo: string | null } | null;
@@ -87,7 +87,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
       const { data, error } = await supabase
         .from("moradores")
         .select(
-          "id, nome, telefone, unidade_id, vaga, subsolo, created_at, created_by, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
+          "id, nome, telefone, unidade_id, vaga, pavimento, created_at, created_by, unidades!inner(id, numero, bloco_id, blocos!inner(id, nome, condominio_id)), veiculos(id, placa, modelo, cor)",
         )
         .eq("unidades.blocos.condominio_id", condominioId)
         .order("nome");
@@ -186,7 +186,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
                           : ""}
                         Unid. {m.unidades.numero}
                         {m.vaga ? ` · Vaga ${m.vaga}` : ""}
-                        {m.subsolo ? ` · Subsolo ${m.subsolo}` : ""}
+                        {m.pavimento ? ` · Pavimento ${m.pavimento}` : ""}
                       </span>
                     )}
                     {m.telefone && (
@@ -296,7 +296,7 @@ function MoradorDialog({
   const [nome, setNome] = useState(morador?.nome ?? "");
   const [telefone, setTelefone] = useState(morador?.telefone ?? "");
   const [vaga, setVaga] = useState(morador?.vaga ?? "");
-  const [subsolo, setSubsolo] = useState(morador?.subsolo ?? "");
+  const [pavimento, setPavimento] = useState(morador?.pavimento ?? "");
   const [blocoId, setBlocoId] = useState<string>(morador?.unidades?.bloco_id ?? "");
   const [unidadeId, setUnidadeId] = useState<string>(morador?.unidade_id ?? "");
   const [veiculos, setVeiculos] = useState<Veiculo[]>(morador?.veiculos ?? []);
@@ -406,7 +406,7 @@ function MoradorDialog({
             telefone: telefone.trim() || null,
             unidade_id: unidadeId,
             vaga: vaga.trim() || null,
-            subsolo: subsolo.trim() || null,
+            pavimento: pavimento.trim() || null,
           })
           .eq("id", moradorId);
         if (error) throw error;
@@ -418,7 +418,7 @@ function MoradorDialog({
             telefone: telefone.trim() || null,
             unidade_id: unidadeId,
             vaga: vaga.trim() || null,
-            subsolo: subsolo.trim() || null,
+            pavimento: pavimento.trim() || null,
           })
           .select("id")
           .single();
@@ -524,12 +524,12 @@ function MoradorDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="m_subsolo">Subsolo</Label>
+              <Label htmlFor="m_pavimento">Pavimento</Label>
               <Input
-                id="m_subsolo"
-                value={subsolo}
-                onChange={(e) => setSubsolo(e.target.value)}
-                placeholder="Ex.: -1"
+                id="m_pavimento"
+                value={pavimento}
+                onChange={(e) => setPavimento(e.target.value)}
+                placeholder="Ex.: -1, Térreo, G1"
               />
             </div>
           </div>
