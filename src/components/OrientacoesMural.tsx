@@ -194,7 +194,7 @@ export function OrientacoesMural() {
         <div className="text-sm text-muted-foreground py-4 text-center">Carregando…</div>
       ) : items.length === 0 ? (
         <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border rounded-lg">
-          Nenhuma orientação ativa no momento.
+          Nenhuma orientação cadastrada
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto pr-1">
