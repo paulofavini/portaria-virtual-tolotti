@@ -285,9 +285,9 @@ function Dashboard() {
                 key={e.id}
                 item={{
                   id: e.id,
-                  title: e.descricao,
-                  subtitle: `${e.condominios?.nome ?? ""} · Bloco ${e.unidades?.blocos?.nome} / Unidade ${e.unidades?.numero}`,
-                  meta: fmtDate(e.data),
+                  title: e.titulo ?? e.descricao ?? "Evento",
+                  subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · Bloco ${e.unidades.blocos?.nome} / Unidade ${e.unidades.numero}` : ""}${e.local ? ` · ${e.local}` : ""}`,
+                  meta: e.horario ? `${fmtDate(e.data)} ${String(e.horario).slice(0,5)}` : fmtDate(e.data),
                 }}
               />
             ))
@@ -358,8 +358,8 @@ function Dashboard() {
                   key={`e-${e.id}`}
                   item={{
                     id: e.id,
-                    title: `Evento — ${e.descricao}`,
-                    subtitle: `${e.condominios?.nome} · Unidade ${e.unidades?.numero}`,
+                    title: `Evento — ${e.titulo ?? e.descricao ?? ""}`,
+                    subtitle: `${e.condominios?.nome ?? ""}${e.unidades ? ` · Unidade ${e.unidades.numero}` : ""}`,
                     meta: fmtDate(e.data),
                   }}
                 />

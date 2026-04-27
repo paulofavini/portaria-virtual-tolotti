@@ -228,33 +228,89 @@ export type Database = {
         }
         Relationships: []
       }
+      evento_convidados: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          documento: string | null
+          evento_id: string
+          horario_checkin: string | null
+          id: string
+          nome: string
+          presente: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          documento?: string | null
+          evento_id: string
+          horario_checkin?: string | null
+          id?: string
+          nome: string
+          presente?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          documento?: string | null
+          evento_id?: string
+          horario_checkin?: string | null
+          id?: string
+          nome?: string
+          presente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evento_convidados_evento_id_fkey"
+            columns: ["evento_id"]
+            isOneToOne: false
+            referencedRelation: "eventos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos: {
         Row: {
           condominio_id: string
           created_at: string
           created_by: string | null
           data: string
-          descricao: string
+          descricao: string | null
+          horario: string | null
           id: string
-          unidade_id: string
+          local: string | null
+          morador_id: string | null
+          observacoes: string | null
+          titulo: string | null
+          unidade_id: string | null
         }
         Insert: {
           condominio_id: string
           created_at?: string
           created_by?: string | null
           data: string
-          descricao: string
+          descricao?: string | null
+          horario?: string | null
           id?: string
-          unidade_id: string
+          local?: string | null
+          morador_id?: string | null
+          observacoes?: string | null
+          titulo?: string | null
+          unidade_id?: string | null
         }
         Update: {
           condominio_id?: string
           created_at?: string
           created_by?: string | null
           data?: string
-          descricao?: string
+          descricao?: string | null
+          horario?: string | null
           id?: string
-          unidade_id?: string
+          local?: string | null
+          morador_id?: string | null
+          observacoes?: string | null
+          titulo?: string | null
+          unidade_id?: string | null
         }
         Relationships: [
           {

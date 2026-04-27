@@ -1,20 +1,13 @@
 import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
-import { PageHeader, EmptyState } from "@/components/PageHeader";
+import { PageHeader } from "@/components/PageHeader";
+import { EventosManager } from "@/components/EventosManager";
 
 function EventosLayout() {
   const location = useLocation();
-
   return (
     <RequireAuth>
-      {location.pathname === "/eventos" ? (
-        <div className="pb-24">
-          <PageHeader title="Eventos" description="Em construção." />
-          <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
-        </div>
-      ) : (
-        <Outlet />
-      )}
+      {location.pathname === "/eventos" ? <EventosPage /> : <Outlet />}
     </RequireAuth>
   );
 }
@@ -22,3 +15,15 @@ function EventosLayout() {
 export const Route = createFileRoute("/eventos")({
   component: EventosLayout,
 });
+
+function EventosPage() {
+  return (
+    <div className="pb-24">
+      <PageHeader
+        title="Eventos"
+        description="Reservas de áreas comuns, festas e cerimônias com lista de convidados."
+      />
+      <EventosManager />
+    </div>
+  );
+}
