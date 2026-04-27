@@ -16,7 +16,6 @@ import {
   useOcorrencias,
   useChamados,
   isToday,
-  isYesterday,
   isFuture,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
