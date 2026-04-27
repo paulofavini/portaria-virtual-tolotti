@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useEventos, isToday } from "@/lib/queries";
 import { ConvidadosDialog, type EventoRow } from "@/components/EventosManager";
 import { cn } from "@/lib/utils";
+import { formatUnidadeBloco } from "@/lib/address";
 
 export function ConvidadosHoje() {
   const eventosQ = useEventos();
@@ -86,8 +87,7 @@ export function ConvidadosHoje() {
                     <div className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80">
                       <Home className="h-3.5 w-3.5 shrink-0" />
                       <span className="truncate">
-                        {e.unidades.blocos?.nome ? `Bloco ${e.unidades.blocos.nome} / ` : ""}
-                        Unidade {e.unidades.numero}
+                        {formatUnidadeBloco(e.unidades)}
                       </span>
                     </div>
                   )}
