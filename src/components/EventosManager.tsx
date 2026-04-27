@@ -129,7 +129,7 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
   });
 
   const { data: eventos, isLoading } = useQuery({
-    queryKey: ["eventos", "full"],
+    queryKey: ["eventos"],
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async () => {
@@ -484,7 +484,7 @@ function EventoDialog({
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
       await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
-      await qc.refetchQueries({ queryKey: ["eventos", "full"] });
+      await qc.refetchQueries({ queryKey: ["eventos"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
