@@ -463,49 +463,73 @@ export type Database = {
       }
       ocorrencias: {
         Row: {
+          bloco_id: string | null
           condominio_id: string
           created_at: string
           created_by: string | null
           data_hora: string
           descricao: string
           documento: string | null
+          emerson_ciente: boolean
           finalizada_em: string | null
           id: string
           imagem_url: string | null
           morador_id: string | null
           nome_pessoa: string | null
+          providencia: string | null
+          reclamado_morador_id: string | null
+          reclamado_nome: string | null
+          reclamante_morador_id: string | null
+          reclamante_nome: string | null
+          sindico_ciente: boolean
           status: Database["public"]["Enums"]["status_ocorrencia"]
           tipo: string
           unidade_id: string | null
         }
         Insert: {
+          bloco_id?: string | null
           condominio_id: string
           created_at?: string
           created_by?: string | null
           data_hora?: string
           descricao: string
           documento?: string | null
+          emerson_ciente?: boolean
           finalizada_em?: string | null
           id?: string
           imagem_url?: string | null
           morador_id?: string | null
           nome_pessoa?: string | null
+          providencia?: string | null
+          reclamado_morador_id?: string | null
+          reclamado_nome?: string | null
+          reclamante_morador_id?: string | null
+          reclamante_nome?: string | null
+          sindico_ciente?: boolean
           status?: Database["public"]["Enums"]["status_ocorrencia"]
           tipo: string
           unidade_id?: string | null
         }
         Update: {
+          bloco_id?: string | null
           condominio_id?: string
           created_at?: string
           created_by?: string | null
           data_hora?: string
           descricao?: string
           documento?: string | null
+          emerson_ciente?: boolean
           finalizada_em?: string | null
           id?: string
           imagem_url?: string | null
           morador_id?: string | null
           nome_pessoa?: string | null
+          providencia?: string | null
+          reclamado_morador_id?: string | null
+          reclamado_nome?: string | null
+          reclamante_morador_id?: string | null
+          reclamante_nome?: string | null
+          sindico_ciente?: boolean
           status?: Database["public"]["Enums"]["status_ocorrencia"]
           tipo?: string
           unidade_id?: string | null

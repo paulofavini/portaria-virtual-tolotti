@@ -16,7 +16,6 @@ import {
   useOcorrencias,
   useChamados,
   isToday,
-  isYesterday,
   isFuture,
 } from "@/lib/queries";
 import { cn } from "@/lib/utils";
@@ -217,7 +216,13 @@ function Dashboard() {
     .slice(0, 5);
 
   const ocorrenciasHoje = (ocorrencias.data ?? []).filter((o) => isToday(o.data_hora));
-  const ocorrenciasOntem = (ocorrencias.data ?? []).filter((o) => isYesterday(o.data_hora));
+  // Últimas 3 ocorrências cadastradas (sem filtro de data) — ordenadas por created_at DESC.
+  const ocorrenciasRecentes = [...(ocorrencias.data ?? [])]
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
+    .slice(0, 3);
 
   const chamadosPendentes = (chamados.data ?? []).filter((c) => c.status === "pendente");
   const chamadosAndamento = (chamados.data ?? []).filter((c) => c.status === "em_andamento");
@@ -388,36 +393,24 @@ function Dashboard() {
           </div>
         </div>
 
-        <SectionCard title="Ocorrências de hoje" icon={AlertTriangle} count={ocorrenciasHoje.length} to="/ocorrencias" accent="warning">
-          {ocorrenciasHoje.length === 0 ? (
-            <Empty>Nenhuma ocorrência hoje.</Empty>
+        <SectionCard
+          title="Ocorrências recentes"
+          icon={AlertTriangle}
+          count={ocorrenciasRecentes.length}
+          to="/ocorrencias"
+          accent="warning"
+        >
+          {ocorrenciasRecentes.length === 0 ? (
+            <Empty>Nenhuma ocorrência cadastrada.</Empty>
           ) : (
-            ocorrenciasHoje.slice(0, 5).map((o) => (
+            ocorrenciasRecentes.map((o) => (
               <Row
                 key={o.id}
                 item={{
                   id: o.id,
                   title: `${o.tipo} — ${o.condominios?.nome ?? ""}`,
                   subtitle: o.descricao,
-                  meta: fmtDateTime(o.data_hora),
-                }}
-              />
-            ))
-          )}
-        </SectionCard>
-
-        <SectionCard title="Ocorrências de ontem" icon={AlertTriangle} count={ocorrenciasOntem.length} to="/ocorrencias" accent="warning">
-          {ocorrenciasOntem.length === 0 ? (
-            <Empty>Sem ocorrências ontem.</Empty>
-          ) : (
-            ocorrenciasOntem.slice(0, 5).map((o) => (
-              <Row
-                key={o.id}
-                item={{
-                  id: o.id,
-                  title: `${o.tipo} — ${o.condominios?.nome ?? ""}`,
-                  subtitle: o.descricao,
-                  meta: fmtDateTime(o.data_hora),
+                  meta: fmtDateTime(o.created_at),
                 }}
               />
             ))

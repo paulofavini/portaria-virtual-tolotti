@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -12,12 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCondominios } from "@/lib/queries";
-import { useQuery } from "@tanstack/react-query";
+import { useCondominios, useBlocos, useUnidades } from "@/lib/queries";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
-import { toast } from "sonner";
-import { Camera, X, Upload, Loader2, UserCheck, Package, Wrench, AlertTriangle } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 type SearchParams = { condominioId?: string };
 
@@ -28,56 +29,62 @@ export const Route = createFileRoute("/ocorrencias/novo")({
   component: NovaOcorrenciaPage,
 });
 
-const TIPOS = [
-  { value: "visitante", label: "Visitante", icon: UserCheck },
-  { value: "entrega", label: "Entrega", icon: Package },
-  { value: "prestador", label: "Prestador de serviço", icon: Wrench },
-  { value: "geral", label: "Ocorrência geral", icon: AlertTriangle },
+const TIPOS_OCORRENCIA = [
+  "Barulho",
+  "Vazamento",
+  "Animal",
+  "Discussão entre moradores",
+  "Dano ao patrimônio",
+  "Visitante",
+  "Entrega",
+  "Prestador de serviço",
+  "Mudança irregular",
+  "Estacionamento",
+  "Segurança",
+  "Lixo",
+  "Outro",
 ] as const;
 
-type TipoValue = (typeof TIPOS)[number]["value"];
+function nowDate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function nowTime() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
 
 function NovaOcorrenciaPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/ocorrencias/novo" });
   const { user, canManageOperational } = useAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const galleryRef = useRef<HTMLInputElement>(null);
 
-  const [tipo, setTipo] = useState<TipoValue>("visitante");
-  const [nomePessoa, setNomePessoa] = useState("");
-  const [documento, setDocumento] = useState("");
-  const [observacao, setObservacao] = useState("");
+  const [data, setData] = useState(nowDate());
+  const [hora, setHora] = useState(nowTime());
   const [condominioId, setCondominioId] = useState<string>(search.condominioId ?? "");
+  const [blocoId, setBlocoId] = useState<string>("");
   const [unidadeId, setUnidadeId] = useState<string>("");
-  const [moradorId, setMoradorId] = useState<string>("");
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [reclamanteMoradorId, setReclamanteMoradorId] = useState<string>("");
+  const [reclamanteNome, setReclamanteNome] = useState<string>("");
+  const [reclamadoMoradorId, setReclamadoMoradorId] = useState<string>("");
+  const [reclamadoNome, setReclamadoNome] = useState<string>("");
+  const [tipo, setTipo] = useState<string>("");
+  const [descricao, setDescricao] = useState<string>("");
+  const [sindicoCiente, setSindicoCiente] = useState(false);
+  const [emersonCiente, setEmersonCiente] = useState(false);
+  const [providencia, setProvidencia] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   const condominios = useCondominios();
+  const blocos = useBlocos(condominioId || undefined);
+  const unidades = useUnidades(blocoId || undefined);
 
-  // Lista plana de unidades do condomínio (bloco/numero)
-  const { data: unidades } = useQuery({
-    queryKey: ["unidades-flat", condominioId],
-    enabled: !!condominioId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("unidades")
-        .select("id, numero, blocos!inner(id, nome, condominio_id)")
-        .eq("blocos.condominio_id", condominioId)
-        .order("numero");
-      if (error) throw error;
-      return data as unknown as Array<{
-        id: string;
-        numero: string;
-        blocos: { id: string; nome: string; condominio_id: string };
-      }>;
-    },
-  });
-
+  // Moradores filtrados por unidade (se selecionada) ou condomínio
   const { data: moradores } = useQuery({
-    queryKey: ["moradores-flat", condominioId, unidadeId],
+    queryKey: ["moradores-ocorrencia", condominioId, unidadeId],
     enabled: !!condominioId,
     queryFn: async () => {
       let q = supabase
@@ -97,29 +104,23 @@ function NovaOcorrenciaPage() {
     },
   });
 
-  // Auto-fill nome quando seleciona morador
+  // Auto-preenche o nome quando seleciona morador
   useEffect(() => {
-    if (!moradorId || nomePessoa.trim()) return;
-    const m = moradores?.find((x) => x.id === moradorId);
-    if (m) setNomePessoa(m.nome);
-  }, [moradorId, moradores, nomePessoa]);
+    if (!reclamanteMoradorId) return;
+    const m = moradores?.find((x) => x.id === reclamanteMoradorId);
+    if (m) setReclamanteNome(m.nome);
+  }, [reclamanteMoradorId, moradores]);
+  useEffect(() => {
+    if (!reclamadoMoradorId) return;
+    const m = moradores?.find((x) => x.id === reclamadoMoradorId);
+    if (m) setReclamadoNome(m.nome);
+  }, [reclamadoMoradorId, moradores]);
 
-  const handleFile = (f: File | null) => {
-    if (!f) {
-      setFile(null);
-      setPreviewUrl(null);
-      return;
-    }
-    if (!f.type.startsWith("image/")) return toast.error("Selecione uma imagem válida");
-    if (f.size > 10 * 1024 * 1024) return toast.error("Imagem deve ter no máximo 10 MB");
-    setFile(f);
-    setPreviewUrl(URL.createObjectURL(f));
-  };
-
-  const tipoLabel = useMemo(
-    () => TIPOS.find((t) => t.value === tipo)?.label ?? tipo,
-    [tipo],
-  );
+  const dataHoraIso = useMemo(() => {
+    if (!data) return null;
+    const time = hora || "00:00";
+    return new Date(`${data}T${time}:00`).toISOString();
+  }, [data, hora]);
 
   const submit = async () => {
     if (!canManageOperational) {
@@ -127,37 +128,26 @@ function NovaOcorrenciaPage() {
       return;
     }
     if (!condominioId) return toast.error("Selecione o condomínio");
-    if (!nomePessoa.trim() && tipo !== "geral")
-      return toast.error("Informe o nome da pessoa");
-    if (tipo === "geral" && !observacao.trim())
-      return toast.error("Descreva a ocorrência");
+    if (!tipo) return toast.error("Selecione o tipo de ocorrência");
+    if (!descricao.trim()) return toast.error("Descreva a ocorrência");
+    if (!dataHoraIso) return toast.error("Informe a data");
 
     setBusy(true);
     try {
-      let imagem_url: string | null = null;
-      if (file) {
-        const ext = file.name.split(".").pop() || "jpg";
-        const path = `${user?.id ?? "anon"}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("ocorrencias")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        imagem_url = supabase.storage.from("ocorrencias").getPublicUrl(path).data.publicUrl;
-      }
-
-      const descricao =
-        observacao.trim() ||
-        (nomePessoa.trim() ? `${tipoLabel}: ${nomePessoa.trim()}` : tipoLabel);
-
       const { error } = await supabase.from("ocorrencias").insert({
         tipo,
-        descricao,
-        nome_pessoa: nomePessoa.trim() || null,
-        documento: documento.trim() || null,
+        descricao: descricao.trim(),
+        data_hora: dataHoraIso,
         condominio_id: condominioId,
+        bloco_id: blocoId || null,
         unidade_id: unidadeId || null,
-        morador_id: moradorId || null,
-        imagem_url,
+        reclamante_morador_id: reclamanteMoradorId || null,
+        reclamante_nome: reclamanteNome.trim() || null,
+        reclamado_morador_id: reclamadoMoradorId || null,
+        reclamado_nome: reclamadoNome.trim() || null,
+        sindico_ciente: sindicoCiente,
+        emerson_ciente: emersonCiente,
+        providencia: providencia.trim() || null,
         status: "em_andamento",
         created_by: user?.id ?? null,
       });
@@ -172,47 +162,36 @@ function NovaOcorrenciaPage() {
   };
 
   return (
-    <div className="pb-24 max-w-2xl">
-      <PageHeader title="Nova ocorrência" description="Registro rápido para portaria." />
+    <div className="pb-24 max-w-3xl">
+      <PageHeader title="Nova ocorrência" description="Registro de ocorrência da portaria." />
 
       <div
-        className="bg-card rounded-xl border border-border p-4 sm:p-6 space-y-4"
+        className="bg-card rounded-xl border border-border p-4 sm:p-6 space-y-5"
         style={{ boxShadow: "var(--shadow-card)" }}
       >
-        {/* Tipo: chips */}
-        <div>
-          <Label>Tipo *</Label>
-          <div className="grid grid-cols-2 gap-2 mt-1.5">
-            {TIPOS.map((t) => {
-              const Icon = t.icon;
-              const active = tipo === t.value;
-              return (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setTipo(t.value)}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    active
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-card hover:bg-muted text-foreground/80"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {t.label}
-                </button>
-              );
-            })}
+        {/* Data e hora */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label>Data *</Label>
+            <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+          </div>
+          <div>
+            <Label>Hora *</Label>
+            <Input type="time" value={hora} onChange={(e) => setHora(e.target.value)} />
           </div>
         </div>
 
+        {/* Condomínio / Bloco / Unidade */}
         <div>
           <Label>Condomínio *</Label>
           <Select
             value={condominioId}
             onValueChange={(v) => {
               setCondominioId(v);
+              setBlocoId("");
               setUnidadeId("");
-              setMoradorId("");
+              setReclamanteMoradorId("");
+              setReclamadoMoradorId("");
             }}
           >
             <SelectTrigger>
@@ -228,66 +207,49 @@ function NovaOcorrenciaPage() {
           </Select>
         </div>
 
-        {tipo !== "geral" && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label>Nome da pessoa *</Label>
-              <Input
-                value={nomePessoa}
-                onChange={(e) => setNomePessoa(e.target.value)}
-                placeholder="Ex.: João Silva"
-                autoFocus
-              />
-            </div>
-            <div>
-              <Label>Documento (opcional)</Label>
-              <Input
-                value={documento}
-                onChange={(e) => setDocumento(e.target.value)}
-                placeholder="RG / CPF / placa"
-              />
-            </div>
-          </div>
-        )}
-
         {condominioId && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <Label>Unidade</Label>
+              <Label>Bloco</Label>
               <Select
-                value={unidadeId || "_none"}
+                value={blocoId || "_none"}
                 onValueChange={(v) => {
-                  setUnidadeId(v === "_none" ? "" : v);
-                  setMoradorId("");
+                  setBlocoId(v === "_none" ? "" : v);
+                  setUnidadeId("");
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="—" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="_none">— sem unidade —</SelectItem>
-                  {(unidades ?? []).map((u) => (
-                    <SelectItem key={u.id} value={u.id}>
-                      Bl. {u.blocos.nome} · {u.numero}
+                  <SelectItem value="_none">— sem bloco —</SelectItem>
+                  {(blocos.data ?? []).map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Morador (opcional)</Label>
+              <Label>Unidade (Apto)</Label>
               <Select
-                value={moradorId || "_none"}
-                onValueChange={(v) => setMoradorId(v === "_none" ? "" : v)}
+                value={unidadeId || "_none"}
+                onValueChange={(v) => {
+                  setUnidadeId(v === "_none" ? "" : v);
+                  setReclamanteMoradorId("");
+                  setReclamadoMoradorId("");
+                }}
+                disabled={!blocoId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="—" />
+                  <SelectValue placeholder={blocoId ? "—" : "Selecione o bloco"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="_none">— nenhum —</SelectItem>
-                  {(moradores ?? []).map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.nome} · Bl. {m.unidades.blocos.nome}/{m.unidades.numero}
+                  <SelectItem value="_none">— sem unidade —</SelectItem>
+                  {(unidades.data ?? []).map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.numero}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -296,54 +258,119 @@ function NovaOcorrenciaPage() {
           </div>
         )}
 
+        {/* Reclamante */}
+        <div className="space-y-2">
+          <Label>Reclamante</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              value={reclamanteMoradorId || "_none"}
+              onValueChange={(v) => setReclamanteMoradorId(v === "_none" ? "" : v)}
+              disabled={!condominioId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={condominioId ? "Selecionar morador" : "Selecione o condomínio"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">— preencher manualmente —</SelectItem>
+                {(moradores ?? []).map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.nome} · Bl. {m.unidades.blocos.nome}/{m.unidades.numero}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={reclamanteNome}
+              onChange={(e) => setReclamanteNome(e.target.value)}
+              placeholder="Nome do reclamante"
+            />
+          </div>
+        </div>
+
+        {/* Reclamado */}
+        <div className="space-y-2">
+          <Label>Reclamado</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              value={reclamadoMoradorId || "_none"}
+              onValueChange={(v) => setReclamadoMoradorId(v === "_none" ? "" : v)}
+              disabled={!condominioId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={condominioId ? "Selecionar morador" : "Selecione o condomínio"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="_none">— preencher manualmente —</SelectItem>
+                {(moradores ?? []).map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.nome} · Bl. {m.unidades.blocos.nome}/{m.unidades.numero}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              value={reclamadoNome}
+              onChange={(e) => setReclamadoNome(e.target.value)}
+              placeholder="Nome do reclamado"
+            />
+          </div>
+        </div>
+
+        {/* Tipo */}
         <div>
-          <Label>Observação {tipo === "geral" ? "*" : "(opcional)"}</Label>
+          <Label>Tipo de ocorrência *</Label>
+          <Select value={tipo} onValueChange={setTipo}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIPOS_OCORRENCIA.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Descrição */}
+        <div>
+          <Label>Descrição detalhada *</Label>
           <Textarea
-            value={observacao}
-            onChange={(e) => setObservacao(e.target.value)}
-            rows={3}
-            placeholder="Detalhes adicionais..."
+            value={descricao}
+            onChange={(e) => setDescricao(e.target.value)}
+            rows={4}
+            placeholder="Descreva o que aconteceu..."
           />
         </div>
 
+        {/* Cientes */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 cursor-pointer">
+            <Checkbox
+              checked={sindicoCiente}
+              onCheckedChange={(v) => setSindicoCiente(v === true)}
+            />
+            <span className="text-sm font-medium text-foreground">Síndico ciente</span>
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 cursor-pointer">
+            <Checkbox
+              checked={emersonCiente}
+              onCheckedChange={(v) => setEmersonCiente(v === true)}
+            />
+            <span className="text-sm font-medium text-foreground">Emerson ciente</span>
+          </label>
+        </div>
+
+        {/* Providência */}
         <div>
-          <Label>Foto (opcional)</Label>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+          <Label>Providência adotada</Label>
+          <Textarea
+            value={providencia}
+            onChange={(e) => setProvidencia(e.target.value)}
+            rows={3}
+            placeholder="Ações tomadas, encaminhamentos, etc."
           />
-          <input
-            ref={galleryRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
-          />
-          {previewUrl ? (
-            <div className="relative inline-block mt-2">
-              <img src={previewUrl} alt="preview" className="rounded-lg max-h-64 border border-border" />
-              <button
-                type="button"
-                onClick={() => handleFile(null)}
-                className="absolute -top-2 -right-2 h-7 w-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
-                <Camera className="h-4 w-4 mr-1" /> Tirar foto
-              </Button>
-              <Button type="button" variant="outline" onClick={() => galleryRef.current?.click()}>
-                <Upload className="h-4 w-4 mr-1" /> Da galeria
-              </Button>
-            </div>
-          )}
         </div>
 
         <div className="flex gap-2 justify-end pt-2">
