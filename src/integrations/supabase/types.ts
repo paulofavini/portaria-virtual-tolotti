@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       avisos: {
         Row: {
+          ativo: boolean
           condominio_id: string
           created_at: string
           created_by: string | null
@@ -23,9 +24,12 @@ export type Database = {
           descricao: string
           id: string
           prioridade: Database["public"]["Enums"]["prioridade_aviso"]
+          tipo: Database["public"]["Enums"]["tipo_aviso"]
+          titulo: string | null
           unidade_id: string | null
         }
         Insert: {
+          ativo?: boolean
           condominio_id: string
           created_at?: string
           created_by?: string | null
@@ -33,9 +37,12 @@ export type Database = {
           descricao: string
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_aviso"]
+          tipo?: Database["public"]["Enums"]["tipo_aviso"]
+          titulo?: string | null
           unidade_id?: string | null
         }
         Update: {
+          ativo?: boolean
           condominio_id?: string
           created_at?: string
           created_by?: string | null
@@ -43,6 +50,8 @@ export type Database = {
           descricao?: string
           id?: string
           prioridade?: Database["public"]["Enums"]["prioridade_aviso"]
+          tipo?: Database["public"]["Enums"]["tipo_aviso"]
+          titulo?: string | null
           unidade_id?: string | null
         }
         Relationships: [
@@ -568,6 +577,7 @@ export type Database = {
       prioridade_aviso: "normal" | "urgente"
       status_chamado: "pendente" | "em_andamento" | "concluido"
       status_ocorrencia: "em_andamento" | "finalizada"
+      tipo_aviso: "informativo" | "urgente" | "manutencao"
       tipo_chamado: "manutencao" | "ti"
       tipo_mudanca: "entrada" | "saida"
     }
@@ -701,6 +711,7 @@ export const Constants = {
       prioridade_aviso: ["normal", "urgente"],
       status_chamado: ["pendente", "em_andamento", "concluido"],
       status_ocorrencia: ["em_andamento", "finalizada"],
+      tipo_aviso: ["informativo", "urgente", "manutencao"],
       tipo_chamado: ["manutencao", "ti"],
       tipo_mudanca: ["entrada", "saida"],
     },
