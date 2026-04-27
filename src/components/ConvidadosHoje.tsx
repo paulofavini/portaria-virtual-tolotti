@@ -1,33 +1,65 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Users, Building2, Home, PartyPopper, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useEventos, isToday } from "@/lib/queries";
+import { useEventos } from "@/lib/queries";
 import { ConvidadosDialog, type EventoRow } from "@/components/EventosManager";
 import { cn } from "@/lib/utils";
 import { formatUnidadeBloco } from "@/lib/address";
 
 function fmtDataCard(iso?: string | null) {
   if (!iso) return "";
-  const d = new Date(iso);
+  // datas de evento vêm como "YYYY-MM-DD" (date) — força local
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  const d = m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+    : new Date(iso);
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+const MAX_PROXIMOS = 4;
+
+function parseLocalDate(value: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(value);
 }
 
 export function ConvidadosHoje() {
   const eventosQ = useEventos();
   const [openEvento, setOpenEvento] = useState<EventoRow | null>(null);
 
-  const eventosHoje = useMemo(
-    () => (eventosQ.data ?? []).filter((e) => isToday(e.data)) as unknown as EventoRow[],
-    [eventosQ.data],
-  );
+  // Próximos eventos: data >= hoje, ordenados crescente, limitados a 4
+  const proximosEventos = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const list = ((eventosQ.data ?? []) as unknown as EventoRow[])
+      .filter((e) => {
+        if (!e.data) return false;
+        const d = parseLocalDate(e.data);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime() >= today.getTime();
+      })
+      .sort((a, b) => {
+        const da = parseLocalDate(a.data).getTime();
+        const db = parseLocalDate(b.data).getTime();
+        if (da !== db) return da - db;
+        // mesma data: por horário crescente (nulos por último)
+        const ta = a.horario ?? "99:99";
+        const tb = b.horario ?? "99:99";
+        return ta.localeCompare(tb);
+      })
+      .slice(0, MAX_PROXIMOS);
+    return list;
+  }, [eventosQ.data]);
 
-  const eventoIds = useMemo(() => eventosHoje.map((e) => e.id), [eventosHoje]);
+  const eventoIds = useMemo(() => proximosEventos.map((e) => e.id), [proximosEventos]);
 
-  // Contagem de convidados (total e presentes) por evento do dia
+  // Contagem de convidados (total e presentes) por evento exibido
   const counts = useQuery({
-    queryKey: ["evento_convidados", "counts", "hoje", eventoIds.join(",")],
+    queryKey: ["evento_convidados", "counts", "proximos", eventoIds.join(",")],
     enabled: eventoIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -56,20 +88,23 @@ export function ConvidadosHoje() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <PartyPopper className="h-4 w-4 text-muted-foreground" />
-            <h3 className="font-semibold text-foreground">Eventos do dia</h3>
+            <h3 className="font-semibold text-foreground">Próximos eventos</h3>
             <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              {eventosHoje.length}
+              {proximosEventos.length}
             </span>
           </div>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/eventos">Ver tudo</Link>
+          </Button>
         </div>
 
-        {eventosHoje.length === 0 ? (
+        {proximosEventos.length === 0 ? (
           <div className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border rounded-lg">
-            Nenhum evento para hoje
+            Nenhum evento próximo
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 max-h-[520px] overflow-y-auto pr-1">
-            {eventosHoje.map((e) => {
+            {proximosEventos.map((e) => {
               const c = counts.data?.get(e.id);
               const total = c?.total ?? 0;
               const presentes = c?.presentes ?? 0;
