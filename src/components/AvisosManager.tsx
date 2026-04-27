@@ -423,7 +423,7 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Remover aviso</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação removerá permanentemente o aviso <strong>{removing?.titulo || removing?.descricao.slice(0, 40)}</strong>. Não pode ser desfeita.
+              Esta ação removerá permanentemente o aviso <strong>{removing?.titulo || removing?.descricao?.slice(0, 40) || "selecionado"}</strong>. Não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
