@@ -31,6 +31,7 @@ import {
   exportCSV,
   generateReportPDF,
   type ReportFilter,
+  type ReportSummaryCard,
   fmtDate,
   fmtDateTime,
   type Column,
@@ -175,6 +176,13 @@ function OperacionalSection() {
   const handleExportPDF = () => {
     if (!filtered.length) return toast.error("Nenhum registro para exportar");
     const { condominio, filters } = buildMeta(condominios, condominioId, dataInicio, dataFim, statusFiltro);
+    const summary: ReportSummaryCard[] = [{ label: "Total", value: filtered.length }];
+    if (getStatusOptions(reportType).length) {
+      const pendentes = filtered.filter((r: any) => pickStatus(reportType, r) === "pendente").length;
+      const concluidos = filtered.filter((r: any) => pickStatus(reportType, r) === "concluido").length;
+      summary.push({ label: "Pendentes", value: pendentes });
+      summary.push({ label: "Finalizadas", value: concluidos });
+    }
     generateReportPDF({
       filename: `relatorio_${reportType}_${stamp()}`,
       title: `Relatório — ${OP_LABELS[reportType]}`,
@@ -182,6 +190,7 @@ function OperacionalSection() {
       data: filtered,
       condominio,
       filters,
+      summary,
     }).then(() => toast.success(`PDF gerado com ${filtered.length} registro(s)`));
   };
 
