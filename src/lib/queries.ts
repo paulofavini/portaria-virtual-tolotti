@@ -149,7 +149,7 @@ export const useChamados = () =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("chamados_tecnicos")
-        .select("*, condominios(nome)")
+        .select("*, condominios(nome), unidades(numero, blocos(nome))")
         .order("data_abertura", { ascending: false });
       if (error) throw error;
       return data;

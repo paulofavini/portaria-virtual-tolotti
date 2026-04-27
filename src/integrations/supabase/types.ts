@@ -147,53 +147,97 @@ export type Database = {
       }
       chamados_tecnicos: {
         Row: {
+          bloco_id: string | null
           categoria: string
-          condominio_id: string
+          condominio_id: string | null
           created_at: string
           created_by: string | null
           data_abertura: string
           data_conclusao: string | null
           descricao: string
+          destino: Database["public"]["Enums"]["destino_chamado"] | null
+          empresa_terceiro: string | null
+          finalizado_em: string | null
           id: string
+          numero_protocolo: string | null
+          origem_solicitante:
+            | Database["public"]["Enums"]["origem_chamado"]
+            | null
+          prazo: string | null
           responsavel: string | null
           status: Database["public"]["Enums"]["status_chamado"]
           tipo: Database["public"]["Enums"]["tipo_chamado"]
+          unidade_id: string | null
           updated_at: string
         }
         Insert: {
+          bloco_id?: string | null
           categoria: string
-          condominio_id: string
+          condominio_id?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
           data_conclusao?: string | null
           descricao: string
+          destino?: Database["public"]["Enums"]["destino_chamado"] | null
+          empresa_terceiro?: string | null
+          finalizado_em?: string | null
           id?: string
+          numero_protocolo?: string | null
+          origem_solicitante?:
+            | Database["public"]["Enums"]["origem_chamado"]
+            | null
+          prazo?: string | null
           responsavel?: string | null
           status?: Database["public"]["Enums"]["status_chamado"]
           tipo: Database["public"]["Enums"]["tipo_chamado"]
+          unidade_id?: string | null
           updated_at?: string
         }
         Update: {
+          bloco_id?: string | null
           categoria?: string
-          condominio_id?: string
+          condominio_id?: string | null
           created_at?: string
           created_by?: string | null
           data_abertura?: string
           data_conclusao?: string | null
           descricao?: string
+          destino?: Database["public"]["Enums"]["destino_chamado"] | null
+          empresa_terceiro?: string | null
+          finalizado_em?: string | null
           id?: string
+          numero_protocolo?: string | null
+          origem_solicitante?:
+            | Database["public"]["Enums"]["origem_chamado"]
+            | null
+          prazo?: string | null
           responsavel?: string | null
           status?: Database["public"]["Enums"]["status_chamado"]
           tipo?: Database["public"]["Enums"]["tipo_chamado"]
+          unidade_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "chamados_tecnicos_bloco_id_fkey"
+            columns: ["bloco_id"]
+            isOneToOne: false
+            referencedRelation: "blocos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "chamados_tecnicos_condominio_id_fkey"
             columns: ["condominio_id"]
             isOneToOne: false
             referencedRelation: "condominios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chamados_tecnicos_unidade_id_fkey"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
             referencedColumns: ["id"]
           },
         ]
@@ -1099,10 +1143,19 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "operador" | "sindico"
+      destino_chamado: "manutencao" | "ti" | "terceiros"
+      origem_chamado: "sindico" | "morador" | "operador" | "manutencao"
       origem_liberacao: "morador" | "sindico" | "empresa"
       origem_orientacao: "interna" | "sindico" | "morador"
       prioridade_aviso: "normal" | "urgente"
-      status_chamado: "pendente" | "em_andamento" | "concluido"
+      status_chamado:
+        | "pendente"
+        | "em_andamento"
+        | "concluido"
+        | "aberto"
+        | "aguardando_terceiro"
+        | "resolvido"
+        | "cancelado"
       status_liberacao: "ativa" | "expirada" | "revogada"
       status_ocorrencia: "em_andamento" | "finalizada"
       status_solicitacao:
@@ -1244,10 +1297,20 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "operador", "sindico"],
+      destino_chamado: ["manutencao", "ti", "terceiros"],
+      origem_chamado: ["sindico", "morador", "operador", "manutencao"],
       origem_liberacao: ["morador", "sindico", "empresa"],
       origem_orientacao: ["interna", "sindico", "morador"],
       prioridade_aviso: ["normal", "urgente"],
-      status_chamado: ["pendente", "em_andamento", "concluido"],
+      status_chamado: [
+        "pendente",
+        "em_andamento",
+        "concluido",
+        "aberto",
+        "aguardando_terceiro",
+        "resolvido",
+        "cancelado",
+      ],
       status_liberacao: ["ativa", "expirada", "revogada"],
       status_ocorrencia: ["em_andamento", "finalizada"],
       status_solicitacao: [
