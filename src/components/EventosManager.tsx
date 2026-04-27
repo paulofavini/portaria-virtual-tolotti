@@ -483,7 +483,8 @@ function EventoDialog({
         if (error) throw error;
       }
       toast.success(isEdit ? "Evento atualizado" : "Evento cadastrado");
-      qc.invalidateQueries({ queryKey: ["eventos"] });
+      await qc.invalidateQueries({ queryKey: ["eventos"], refetchType: "all" });
+      await qc.refetchQueries({ queryKey: ["eventos", "full"] });
       onClose();
     } catch (e) {
       reportError("Salvar evento", e);
