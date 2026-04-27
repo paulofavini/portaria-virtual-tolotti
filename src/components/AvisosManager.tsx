@@ -338,6 +338,7 @@ function AvisoDialog({
   );
   const [data, setData] = useState(aviso?.data ?? new Date().toISOString().slice(0, 10));
   const [ativo, setAtivo] = useState(aviso?.ativo ?? true);
+  const [fixado, setFixado] = useState(aviso?.fixado ?? false);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -354,6 +355,7 @@ function AvisoDialog({
         condominio_id: condominioId,
         data,
         ativo,
+        fixado,
         prioridade: (tipo === "urgente" ? "urgente" : "normal") as "urgente" | "normal",
       };
       if (isEdit && aviso) {
@@ -433,17 +435,28 @@ function AvisoDialog({
             </div>
           </div>
 
-          {isEdit && (
+          <div className="flex flex-col gap-2 pt-1">
             <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
               <input
                 type="checkbox"
-                checked={ativo}
-                onChange={(e) => setAtivo(e.target.checked)}
+                checked={fixado}
+                onChange={(e) => setFixado(e.target.checked)}
                 className="h-4 w-4 rounded border-input"
               />
-              Aviso ativo
+              Fixar no topo
             </label>
-          )}
+            {isEdit && (
+              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={ativo}
+                  onChange={(e) => setAtivo(e.target.checked)}
+                  className="h-4 w-4 rounded border-input"
+                />
+                Aviso ativo
+              </label>
+            )}
+          </div>
         </div>
 
         <DialogFooter>
