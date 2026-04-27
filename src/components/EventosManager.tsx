@@ -130,6 +130,8 @@ export function EventosManager({ openNew = false }: { openNew?: boolean }) {
 
   const { data: eventos, isLoading } = useQuery({
     queryKey: ["eventos", "full"],
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data, error } = await supabase
         .from("eventos")
