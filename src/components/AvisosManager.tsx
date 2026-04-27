@@ -13,6 +13,7 @@ import {
   PinOff,
   Search,
   Copy,
+  Building2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -321,12 +322,15 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-foreground shrink-0" />
+                      <h2 className="text-base sm:text-lg font-bold text-foreground leading-tight break-words">
+                        {a.condominios?.nome ?? "Sem condomínio"}
+                      </h2>
                       {a.fixado && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30">
                           <Pin className="h-3 w-3" /> Fixado
                         </span>
                       )}
-                      <h3 className="font-semibold text-foreground">{a.titulo || (a.descricao ? a.descricao.slice(0, 60) : "(sem título)")}</h3>
                       <span className={cn(
                         "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
                         TIPO_BADGE[a.tipo],
@@ -339,12 +343,13 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
                         </span>
                       )}
                     </div>
+                    <h3 className="text-sm sm:text-[15px] font-medium text-foreground/90 mt-2 break-words">
+                      {a.titulo || (a.descricao ? a.descricao.slice(0, 60) : "(sem título)")}
+                    </h3>
                     {a.titulo && a.descricao && a.descricao.trim() !== "" && (
-                      <p className="text-sm text-foreground/80 mt-1 whitespace-pre-wrap">{a.descricao}</p>
+                      <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{a.descricao}</p>
                     )}
-                    <div className="text-xs text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                      <span>{a.condominios?.nome ?? "—"}</span>
-                      <span>•</span>
+                    <div className="text-xs text-muted-foreground mt-3 flex flex-wrap gap-x-3 gap-y-1">
                       <span>{new Date(a.data).toLocaleDateString("pt-BR")}</span>
                       {a.data_expiracao && (
                         <>
