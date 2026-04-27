@@ -310,12 +310,22 @@ export function AvisosManager({ openNew = false }: { openNew?: boolean }) {
               <div
                 key={a.id}
                 className={cn(
-                  "rounded-xl border p-4 sm:p-5 bg-card transition-shadow hover:shadow-md",
+                  "relative overflow-hidden rounded-xl border p-4 sm:p-5 pl-5 sm:pl-6 bg-card transition-shadow hover:shadow-md",
                   a.tipo === "urgente" && "border-destructive/40 bg-destructive/5",
                   a.fixado && "ring-1 ring-primary/30 border-primary/40",
                 )}
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
+                {/* Barra lateral indicadora de tipo */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute left-0 top-0 bottom-0 w-1 rounded-l-xl",
+                    a.tipo === "urgente" && "bg-destructive",
+                    a.tipo === "manutencao" && "bg-amber-500",
+                    a.tipo === "informativo" && "bg-primary",
+                  )}
+                />
                 <div className="flex items-start gap-3">
                   <div className={cn(
                     "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
