@@ -202,6 +202,20 @@ function Dashboard() {
     });
   const mudancasFuturas = (mudancas.data ?? []).filter((m) => isFuture(m.data)).slice(0, 5);
 
+  // Últimas 5 mudanças anteriores ao dia de hoje (data < início do dia atual).
+  const mudancasPassadas = (mudancas.data ?? [])
+    .filter((m) => !isToday(m.data) && !isFuture(m.data))
+    .sort((a, b) => {
+      // Ordena por data DESC; em caso de empate, usa created_at DESC.
+      const da = a.data ?? "";
+      const db = b.data ?? "";
+      if (da !== db) return db.localeCompare(da);
+      const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return tb - ta;
+    })
+    .slice(0, 5);
+
   const ocorrenciasHoje = (ocorrencias.data ?? []).filter((o) => isToday(o.data_hora));
   const ocorrenciasOntem = (ocorrencias.data ?? []).filter((o) => isYesterday(o.data_hora));
 
