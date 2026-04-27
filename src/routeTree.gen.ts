@@ -26,6 +26,7 @@ import { Route as OcorrenciasNovoRouteImport } from './routes/ocorrencias.novo'
 import { Route as MudancasNovoRouteImport } from './routes/mudancas.novo'
 import { Route as EventosNovoRouteImport } from './routes/eventos.novo'
 import { Route as CondominiosNovoRouteImport } from './routes/condominios.novo'
+import { Route as CondominiosIdRouteImport } from './routes/condominios.$id'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as AvisosNovoRouteImport } from './routes/avisos.novo'
 import { Route as CondominiosIdIndexRouteImport } from './routes/condominios.$id.index'
@@ -116,6 +117,11 @@ const CondominiosNovoRoute = CondominiosNovoRouteImport.update({
   path: '/novo',
   getParentRoute: () => CondominiosRoute,
 } as any)
+const CondominiosIdRoute = CondominiosIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CondominiosRoute,
+} as any)
 const ChamadosNovoRoute = ChamadosNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -127,14 +133,14 @@ const AvisosNovoRoute = AvisosNovoRouteImport.update({
   getParentRoute: () => AvisosRoute,
 } as any)
 const CondominiosIdIndexRoute = CondominiosIdIndexRouteImport.update({
-  id: '/$id/',
-  path: '/$id/',
-  getParentRoute: () => CondominiosRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => CondominiosIdRoute,
 } as any)
 const CondominiosIdEditarRoute = CondominiosIdEditarRouteImport.update({
-  id: '/$id/editar',
-  path: '/$id/editar',
-  getParentRoute: () => CondominiosRoute,
+  id: '/editar',
+  path: '/editar',
+  getParentRoute: () => CondominiosIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
+  '/condominios/$id': typeof CondominiosIdRouteWithChildren
   '/condominios/novo': typeof CondominiosNovoRoute
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
@@ -197,6 +204,7 @@ export interface FileRoutesById {
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
   '/chamados/novo': typeof ChamadosNovoRoute
+  '/condominios/$id': typeof CondominiosIdRouteWithChildren
   '/condominios/novo': typeof CondominiosNovoRoute
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
@@ -222,6 +230,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/avisos/novo'
     | '/chamados/novo'
+    | '/condominios/$id'
     | '/condominios/novo'
     | '/eventos/novo'
     | '/mudancas/novo'
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/usuarios'
     | '/avisos/novo'
     | '/chamados/novo'
+    | '/condominios/$id'
     | '/condominios/novo'
     | '/eventos/novo'
     | '/mudancas/novo'
@@ -413,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CondominiosNovoRouteImport
       parentRoute: typeof CondominiosRoute
     }
+    '/condominios/$id': {
+      id: '/condominios/$id'
+      path: '/$id'
+      fullPath: '/condominios/$id'
+      preLoaderRoute: typeof CondominiosIdRouteImport
+      parentRoute: typeof CondominiosRoute
+    }
     '/chamados/novo': {
       id: '/chamados/novo'
       path: '/novo'
@@ -429,17 +446,17 @@ declare module '@tanstack/react-router' {
     }
     '/condominios/$id/': {
       id: '/condominios/$id/'
-      path: '/$id'
+      path: '/'
       fullPath: '/condominios/$id/'
       preLoaderRoute: typeof CondominiosIdIndexRouteImport
-      parentRoute: typeof CondominiosRoute
+      parentRoute: typeof CondominiosIdRoute
     }
     '/condominios/$id/editar': {
       id: '/condominios/$id/editar'
-      path: '/$id/editar'
+      path: '/editar'
       fullPath: '/condominios/$id/editar'
       preLoaderRoute: typeof CondominiosIdEditarRouteImport
-      parentRoute: typeof CondominiosRoute
+      parentRoute: typeof CondominiosIdRoute
     }
   }
 }
@@ -467,18 +484,30 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
   ChamadosRouteChildren,
 )
 
-interface CondominiosRouteChildren {
-  CondominiosNovoRoute: typeof CondominiosNovoRoute
-  CondominiosIndexRoute: typeof CondominiosIndexRoute
+interface CondominiosIdRouteChildren {
   CondominiosIdEditarRoute: typeof CondominiosIdEditarRoute
   CondominiosIdIndexRoute: typeof CondominiosIdIndexRoute
 }
 
-const CondominiosRouteChildren: CondominiosRouteChildren = {
-  CondominiosNovoRoute: CondominiosNovoRoute,
-  CondominiosIndexRoute: CondominiosIndexRoute,
+const CondominiosIdRouteChildren: CondominiosIdRouteChildren = {
   CondominiosIdEditarRoute: CondominiosIdEditarRoute,
   CondominiosIdIndexRoute: CondominiosIdIndexRoute,
+}
+
+const CondominiosIdRouteWithChildren = CondominiosIdRoute._addFileChildren(
+  CondominiosIdRouteChildren,
+)
+
+interface CondominiosRouteChildren {
+  CondominiosIdRoute: typeof CondominiosIdRouteWithChildren
+  CondominiosNovoRoute: typeof CondominiosNovoRoute
+  CondominiosIndexRoute: typeof CondominiosIndexRoute
+}
+
+const CondominiosRouteChildren: CondominiosRouteChildren = {
+  CondominiosIdRoute: CondominiosIdRouteWithChildren,
+  CondominiosNovoRoute: CondominiosNovoRoute,
+  CondominiosIndexRoute: CondominiosIndexRoute,
 }
 
 const CondominiosRouteWithChildren = CondominiosRoute._addFileChildren(
