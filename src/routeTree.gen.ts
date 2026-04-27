@@ -21,6 +21,7 @@ import { Route as ChamadosRouteImport } from './routes/chamados'
 import { Route as AvisosRouteImport } from './routes/avisos'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CondominiosIndexRouteImport } from './routes/condominios.index'
+import { Route as RelatoriosOcorrenciasRouteImport } from './routes/relatorios.ocorrencias'
 import { Route as OcorrenciasNovoRouteImport } from './routes/ocorrencias.novo'
 import { Route as MudancasNovoRouteImport } from './routes/mudancas.novo'
 import { Route as EventosNovoRouteImport } from './routes/eventos.novo'
@@ -89,6 +90,11 @@ const CondominiosIndexRoute = CondominiosIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CondominiosRoute,
 } as any)
+const RelatoriosOcorrenciasRoute = RelatoriosOcorrenciasRouteImport.update({
+  id: '/relatorios/ocorrencias',
+  path: '/relatorios/ocorrencias',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OcorrenciasNovoRoute = OcorrenciasNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
+  '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
+  '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios': typeof CondominiosIndexRoute
 }
 export interface FileRoutesById {
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/eventos/novo': typeof EventosNovoRoute
   '/mudancas/novo': typeof MudancasNovoRoute
   '/ocorrencias/novo': typeof OcorrenciasNovoRoute
+  '/relatorios/ocorrencias': typeof RelatoriosOcorrenciasRoute
   '/condominios/': typeof CondominiosIndexRoute
 }
 export interface FileRouteTypes {
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/eventos/novo'
     | '/mudancas/novo'
     | '/ocorrencias/novo'
+    | '/relatorios/ocorrencias'
     | '/condominios/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/eventos/novo'
     | '/mudancas/novo'
     | '/ocorrencias/novo'
+    | '/relatorios/ocorrencias'
     | '/condominios'
   id:
     | '__root__'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/eventos/novo'
     | '/mudancas/novo'
     | '/ocorrencias/novo'
+    | '/relatorios/ocorrencias'
     | '/condominios/'
   fileRoutesById: FileRoutesById
 }
@@ -265,6 +277,7 @@ export interface RootRouteChildren {
   MudancasRoute: typeof MudancasRouteWithChildren
   OcorrenciasRoute: typeof OcorrenciasRouteWithChildren
   UsuariosRoute: typeof UsuariosRoute
+  RelatoriosOcorrenciasRoute: typeof RelatoriosOcorrenciasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +365,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/condominios/'
       preLoaderRoute: typeof CondominiosIndexRouteImport
       parentRoute: typeof CondominiosRoute
+    }
+    '/relatorios/ocorrencias': {
+      id: '/relatorios/ocorrencias'
+      path: '/relatorios/ocorrencias'
+      fullPath: '/relatorios/ocorrencias'
+      preLoaderRoute: typeof RelatoriosOcorrenciasRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/ocorrencias/novo': {
       id: '/ocorrencias/novo'
@@ -491,6 +511,7 @@ const rootRouteChildren: RootRouteChildren = {
   MudancasRoute: MudancasRouteWithChildren,
   OcorrenciasRoute: OcorrenciasRouteWithChildren,
   UsuariosRoute: UsuariosRoute,
+  RelatoriosOcorrenciasRoute: RelatoriosOcorrenciasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
