@@ -44,7 +44,7 @@ const NAV = [
   { to: "/solicitacoes", label: "Solicitações", icon: ClipboardList },
   { to: "/condominios", label: "Condomínios", icon: Building2 },
   { to: "/moradores", label: "Moradores", icon: Users },
-  { to: "/relatorios/ocorrencias", label: "Relatórios", icon: FileBarChart },
+  { to: "/relatorios", label: "Relatórios", icon: FileBarChart },
 ] as const;
 
 const QUICK_ACTIONS = [
