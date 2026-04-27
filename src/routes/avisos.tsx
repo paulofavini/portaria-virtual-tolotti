@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -6,25 +6,32 @@ import { useAvisos } from "@/lib/queries";
 import { Plus, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/avisos")({
-  component: () => (
+function AvisosLayout() {
+  const location = useLocation();
+
+  return (
     <RequireAuth>
-      <AvisosPage />
+      {location.pathname === "/avisos" ? <AvisosPage /> : <Outlet />}
     </RequireAuth>
-  ),
+  );
+}
+
+export const Route = createFileRoute("/avisos")({
+  component: AvisosLayout,
 });
 
 function AvisosPage() {
   const { data, isLoading } = useAvisos();
-  const navigate = useNavigate();
   return (
     <div className="pb-24">
       <PageHeader
         title="Avisos"
         description="Comunicados e alertas do dia."
         action={
-          <Button onClick={() => navigate({ to: "/avisos/novo" })}>
-            <Plus className="h-4 w-4 mr-1" /> Novo aviso
+          <Button asChild>
+            <Link to="/avisos/novo">
+              <Plus className="h-4 w-4 mr-1" /> Novo aviso
+            </Link>
           </Button>
         }
       />
