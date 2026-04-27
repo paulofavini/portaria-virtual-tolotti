@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Building2,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +30,12 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
+} from "@/components/ui/command";
 import { useCondominios, useBlocos, useUnidades } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +70,7 @@ type SolicitacaoRow = {
   id: string;
   condominio_id: string;
   unidade_id: string | null;
+  morador_id: string | null;
   morador_nome: string | null;
   tipo: TipoSolicitacao;
   descricao: string;
