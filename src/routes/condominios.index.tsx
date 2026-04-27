@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -35,9 +35,11 @@ function CondosPage() {
         description="Cadastro completo de condomínios."
         action={
           isAdmin ? (
-            <Button onClick={() => navigate({ to: "/condominios/novo" })}>
-              <Plus className="h-4 w-4 mr-1" />
-              Novo condomínio
+            <Button asChild>
+              <Link to="/condominios/novo">
+                <Plus className="h-4 w-4 mr-1" />
+                Novo condomínio
+              </Link>
             </Button>
           ) : null
         }

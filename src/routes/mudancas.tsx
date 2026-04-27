@@ -1,14 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import { PageHeader, EmptyState } from "@/components/PageHeader";
 
-export const Route = createFileRoute("/mudancas")({
-  component: () => (
+function MudancasLayout() {
+  const location = useLocation();
+
+  return (
     <RequireAuth>
-      <div className="pb-24">
-        <PageHeader title="Mudanças" description="Em construção." />
-        <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
-      </div>
+      {location.pathname === "/mudancas" ? (
+        <div className="pb-24">
+          <PageHeader title="Mudanças" description="Em construção." />
+          <EmptyState title="Em breve" description="Esta seção será implementada na próxima etapa." />
+        </div>
+      ) : (
+        <Outlet />
+      )}
     </RequireAuth>
-  ),
+  );
+}
+
+export const Route = createFileRoute("/mudancas")({
+  component: MudancasLayout,
 });
