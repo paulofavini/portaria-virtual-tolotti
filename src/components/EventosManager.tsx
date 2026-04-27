@@ -632,7 +632,7 @@ function EventoDialog({
   );
 }
 
-function ConvidadosDialog({
+export function ConvidadosDialog({
   evento,
   onClose,
 }: {
