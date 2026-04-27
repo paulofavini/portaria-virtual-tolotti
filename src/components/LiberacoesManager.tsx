@@ -61,6 +61,8 @@ type LiberacaoRow = {
   status: Status;
   revogada_em: string | null;
   revogada_motivo: string | null;
+  created_by: string | null;
+  updated_at: string | null;
   created_at: string;
 };
 
