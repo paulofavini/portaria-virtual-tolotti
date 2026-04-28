@@ -4,6 +4,15 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
@@ -19,6 +28,7 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -71,7 +81,16 @@ function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+                <button
+                  type="button"
+                  onClick={() => setForgotOpen(true)}
+                  className="text-xs font-medium text-primary hover:underline focus:outline-none focus-visible:underline"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -118,6 +137,106 @@ function LoginPage() {
           />
         </div>
       </div>
+      <ForgotPasswordDialog
+        open={forgotOpen}
+        onClose={() => setForgotOpen(false)}
+        initialEmail={email}
+      />
     </div>
+  );
+}
+
+function ForgotPasswordDialog({
+  open,
+  onClose,
+  initialEmail,
+}: {
+  open: boolean;
+  onClose: () => void;
+  initialEmail: string;
+}) {
+  const [email, setEmail] = useState(initialEmail);
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setEmail(initialEmail);
+      setSent(false);
+    }
+  }, [open, initialEmail]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setBusy(true);
+    try {
+      // Erros são tratados de forma genérica para não expor se o email existe
+      await supabase.auth.resetPasswordForEmail(trimmed, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+    } catch {
+      // silencioso — sempre exibimos a mesma mensagem genérica
+    } finally {
+      setBusy(false);
+      setSent(true);
+      toast.success("Se o email estiver cadastrado, você receberá um link para redefinir sua senha");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Recuperar senha</DialogTitle>
+          <DialogDescription>
+            Informe o e-mail cadastrado. Enviaremos um link seguro para você definir uma nova senha.
+          </DialogDescription>
+        </DialogHeader>
+        {sent ? (
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-foreground">
+              Se o email estiver cadastrado, você receberá um link para redefinir sua senha.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Verifique também a caixa de spam. O link expira em 1 hora.
+            </p>
+            <DialogFooter>
+              <Button onClick={onClose} className="w-full sm:w-auto">Fechar</Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="forgot-email">E-mail</Label>
+              <Input
+                id="forgot-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                autoFocus
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={busy || !email.trim()}>
+                {busy ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...
+                  </>
+                ) : (
+                  "Enviar link de recuperação"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
