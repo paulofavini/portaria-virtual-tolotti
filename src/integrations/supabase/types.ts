@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      arquivo_logs: {
+        Row: {
+          acao: string
+          arquivo_id: string
+          data_hora: string
+          id: string
+          nome_usuario: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          acao: string
+          arquivo_id: string
+          data_hora?: string
+          id?: string
+          nome_usuario?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string
+          arquivo_id?: string
+          data_hora?: string
+          id?: string
+          nome_usuario?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
+      arquivos: {
+        Row: {
+          ativo: boolean
+          condominio_id: string
+          created_at: string
+          criado_por: string | null
+          criado_por_nome: string | null
+          deletado_em: string | null
+          deletado_por: string | null
+          deletado_por_nome: string | null
+          descricao: string
+          id: string
+          nome: string
+          storage_path: string
+          tamanho: number | null
+          tipo: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          ativo?: boolean
+          condominio_id: string
+          created_at?: string
+          criado_por?: string | null
+          criado_por_nome?: string | null
+          deletado_em?: string | null
+          deletado_por?: string | null
+          deletado_por_nome?: string | null
+          descricao: string
+          id?: string
+          nome: string
+          storage_path: string
+          tamanho?: number | null
+          tipo?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          ativo?: boolean
+          condominio_id?: string
+          created_at?: string
+          criado_por?: string | null
+          criado_por_nome?: string | null
+          deletado_em?: string | null
+          deletado_por?: string | null
+          deletado_por_nome?: string | null
+          descricao?: string
+          id?: string
+          nome?: string
+          storage_path?: string
+          tamanho?: number | null
+          tipo?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
