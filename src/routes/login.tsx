@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { Loader2 } from "lucide-react";
 import logo18Anos from "@/assets/logo-tolotti-18anos.png";
+import loginBg from "@/assets/login-bg.jpg";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -53,9 +54,27 @@ function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "var(--gradient-brand)" }}
+      className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden"
     >
+      {/* Imagem de fundo com leve blur */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-20 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${loginBg})`,
+          filter: "blur(3px)",
+          transform: "scale(1.05)",
+        }}
+      />
+      {/* Overlay azul escuro para contraste e identidade visual */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(10, 37, 64, 0.82) 0%, rgba(13, 71, 161, 0.72) 55%, rgba(21, 101, 192, 0.68) 100%)",
+        }}
+      />
       <div className="w-full max-w-md pt-12 pb-6">
         <div className="flex justify-center mb-6 animate-fade-in" style={{ animationDuration: "400ms" }}>
           <Logo onDark className="h-24 w-auto drop-shadow-md" />
