@@ -240,7 +240,9 @@ function CreateUserDialog({
   const [nome, setNome] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<AppRole>("operador");
+  const [condominioIds, setCondominioIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const { data: condominios } = useCondominios();
 
   useEffect(() => {
     if (open) {
@@ -248,6 +250,7 @@ function CreateUserDialog({
       setNome("");
       setPassword("");
       setRole("operador");
+      setCondominioIds([]);
     }
   }, [open]);
 
@@ -260,6 +263,10 @@ function CreateUserDialog({
       toast.error("Senha deve ter pelo menos 6 caracteres");
       return;
     }
+    if (role === "sindico" && condominioIds.length === 0) {
+      toast.error("Síndico deve ter pelo menos 1 condomínio vinculado");
+      return;
+    }
     setBusy(true);
     try {
       await callAdminFn({
@@ -268,6 +275,7 @@ function CreateUserDialog({
         password,
         nome_completo: nome.trim() || email.trim(),
         role,
+        condominio_ids: role === "sindico" ? condominioIds : [],
       });
       toast.success("Usuário criado");
       onCreated();
@@ -309,6 +317,21 @@ function CreateUserDialog({
               </SelectContent>
             </Select>
           </div>
+          {role === "sindico" && (
+            <div>
+              <Label>
+                Condomínios vinculados <span className="text-destructive">*</span>
+              </Label>
+              <CondominiosMultiSelect
+                condominios={condominios ?? []}
+                value={condominioIds}
+                onChange={setCondominioIds}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Síndico só poderá ver dados dos condomínios selecionados.
+              </p>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>Cancelar</Button>
@@ -331,18 +354,25 @@ function EditUserDialog({
   const [nome, setNome] = useState("");
   const [role, setRole] = useState<AppRole>("operador");
   const [password, setPassword] = useState("");
+  const [condominioIds, setCondominioIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const { data: condominios } = useCondominios();
 
   useEffect(() => {
     if (user) {
       setNome(user.nome_completo);
       setRole((user.roles[0] as AppRole) ?? "operador");
       setPassword("");
+      setCondominioIds(user.condominios ?? []);
     }
   }, [user]);
 
   const submit = async () => {
     if (!user) return;
+    if (role === "sindico" && condominioIds.length === 0) {
+      toast.error("Síndico deve ter pelo menos 1 condomínio vinculado");
+      return;
+    }
     setBusy(true);
     try {
       await callAdminFn({
@@ -351,6 +381,7 @@ function EditUserDialog({
         nome_completo: nome,
         role,
         password: password || undefined,
+        condominio_ids: role === "sindico" ? condominioIds : [],
       });
       toast.success("Usuário atualizado");
       onSaved();
@@ -384,6 +415,18 @@ function EditUserDialog({
               </SelectContent>
             </Select>
           </div>
+          {role === "sindico" && (
+            <div>
+              <Label>
+                Condomínios vinculados <span className="text-destructive">*</span>
+              </Label>
+              <CondominiosMultiSelect
+                condominios={condominios ?? []}
+                value={condominioIds}
+                onChange={setCondominioIds}
+              />
+            </div>
+          )}
           <div>
             <Label>Nova senha (opcional)</Label>
             <Input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Deixe em branco para manter" />
@@ -395,5 +438,51 @@ function EditUserDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function CondominiosMultiSelect({
+  condominios,
+  value,
+  onChange,
+}: {
+  condominios: { id: string; nome: string }[];
+  value: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (id: string) => {
+    if (value.includes(id)) onChange(value.filter((v) => v !== id));
+    else onChange([...value, id]);
+  };
+  if (!condominios.length) {
+    return (
+      <p className="text-xs text-muted-foreground p-3 border border-border rounded-md">
+        Nenhum condomínio cadastrado.
+      </p>
+    );
+  }
+  return (
+    <div className="border border-border rounded-md max-h-48 overflow-y-auto divide-y divide-border">
+      {condominios.map((c) => {
+        const checked = value.includes(c.id);
+        return (
+          <label
+            key={c.id}
+            className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-muted/50 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-primary"
+              checked={checked}
+              onChange={() => toggle(c.id)}
+            />
+            <span className="flex-1">{c.nome}</span>
+          </label>
+        );
+      })}
+      <div className="px-3 py-2 text-xs text-muted-foreground bg-muted/30">
+        {value.length} selecionado(s)
+      </div>
+    </div>
   );
 }
