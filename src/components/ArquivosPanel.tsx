@@ -10,6 +10,7 @@ import {
   FileImage,
   File as FileIcon,
   Upload,
+  Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -88,11 +89,12 @@ async function getSignedUrl(path: string) {
 }
 
 export function ArquivosPanel({ condominioId }: { condominioId: string }) {
-  const { canManageOperational, user } = useAuth();
+  const { canManageOperational, isAdmin, user } = useAuth();
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<{ arquivo: Arquivo; url: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Arquivo | null>(null);
+  const [editing, setEditing] = useState<Arquivo | null>(null);
 
   const { data: arquivos, isLoading } = useQuery({
     queryKey: ["arquivos", condominioId],
@@ -255,6 +257,16 @@ export function ArquivosPanel({ condominioId }: { condominioId: string }) {
                     <Button
                       size="icon"
                       variant="ghost"
+                      onClick={() => setEditing(arq)}
+                      aria-label="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       className="text-destructive hover:text-destructive"
                       onClick={() => setConfirmDelete(arq)}
                       aria-label="Excluir"
@@ -274,6 +286,15 @@ export function ArquivosPanel({ condominioId }: { condominioId: string }) {
         onOpenChange={setUploadOpen}
         condominioId={condominioId}
         onSuccess={() => qc.invalidateQueries({ queryKey: ["arquivos", condominioId] })}
+      />
+
+      <EditArquivoDialog
+        arquivo={editing}
+        onClose={() => setEditing(null)}
+        onSuccess={() => {
+          setEditing(null);
+          qc.invalidateQueries({ queryKey: ["arquivos", condominioId] });
+        }}
       />
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
