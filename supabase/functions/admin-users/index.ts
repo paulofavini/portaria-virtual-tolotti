@@ -10,13 +10,14 @@ const corsHeaders = {
 type AppRole = "admin" | "operador" | "sindico";
 
 interface RequestBody {
-  action: "list" | "create" | "update" | "delete";
+  action: "list" | "create" | "update" | "delete" | "reset_password" | "generate_reset_link";
   email?: string;
   password?: string;
   nome_completo?: string;
   role?: AppRole;
   user_id?: string;
   condominio_ids?: string[];
+  redirect_to?: string;
 }
 
 Deno.serve(async (req) => {
@@ -150,6 +151,36 @@ Deno.serve(async (req) => {
       const { error: delErr } = await admin.auth.admin.deleteUser(body.user_id);
       if (delErr) throw delErr;
       return json({ ok: true });
+    }
+
+    if (body.action === "reset_password" || body.action === "generate_reset_link") {
+      if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
+      // Busca e-mail do usuário alvo
+      const { data: target, error: tgtErr } = await admin.auth.admin.getUserById(body.user_id);
+      if (tgtErr || !target.user?.email) {
+        return json({ error: "Usuário não encontrado" }, 404);
+      }
+      const email = target.user.email;
+      const redirectTo = body.redirect_to;
+
+      if (body.action === "generate_reset_link") {
+        // Gera link de recovery (token válido por 1h — padrão Supabase)
+        const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+          type: "recovery",
+          email,
+          options: redirectTo ? { redirectTo } : undefined,
+        });
+        if (linkErr) throw linkErr;
+        return json({ ok: true, action_link: linkData.properties?.action_link, email });
+      }
+
+      // reset_password: dispara envio de e-mail nativo do Supabase
+      // Usa client anônimo com contexto do chamador para respeitar rate limits
+      const { error: rpErr } = await userClient.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (rpErr) throw rpErr;
+      return json({ ok: true, email });
     }
 
     return json({ error: "Ação inválida" }, 400);
