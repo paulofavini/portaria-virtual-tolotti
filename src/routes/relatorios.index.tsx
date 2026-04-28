@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { useCondominios } from "@/lib/queries";
+import { useCondominios, useUsuarioCondominios } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import {
   exportCSV,
@@ -136,7 +136,13 @@ function RelatoriosPage() {
 
 function OperacionalSection() {
   const [reportType, setReportType] = useState<OperationalKey>("ocorrencias");
-  const { data: condominios } = useCondominios();
+  const { user, isSindico, isAdmin, isOperador } = useAuth();
+  const { data: allCondominios } = useCondominios();
+  const { data: vinculados } = useUsuarioCondominios(isSindico && !isAdmin ? user?.id : undefined);
+  const onlySindico = isSindico && !isAdmin && !isOperador;
+  const condominios = onlySindico
+    ? (allCondominios ?? []).filter((c) => (vinculados ?? []).includes(c.id))
+    : allCondominios;
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [condominioId, setCondominioId] = useState("todos");
@@ -148,7 +154,9 @@ function OperacionalSection() {
     if (!query.data) return [];
     const inicio = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
     const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`) : null;
+    const allowedIds = onlySindico ? new Set(vinculados ?? []) : null;
     return query.data.filter((r: any) => {
+      if (allowedIds && r.condominio_id && !allowedIds.has(r.condominio_id)) return false;
       const dateField = pickDate(reportType, r);
       if (dateField) {
         const dt = new Date(dateField);
@@ -163,7 +171,7 @@ function OperacionalSection() {
       }
       return true;
     });
-  }, [query.data, reportType, dataInicio, dataFim, condominioId, statusFiltro]);
+  }, [query.data, reportType, dataInicio, dataFim, condominioId, statusFiltro, onlySindico, vinculados]);
 
   const columns = getOperationalColumns(reportType);
   const statusOptions = getStatusOptions(reportType);
