@@ -58,7 +58,7 @@ const QUICK_ACTIONS = [
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { user, roles, signOut, isAdmin } = useAuth();
+  const { user, roles, signOut, isAdmin, isSindico, isOperador } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,6 +68,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   };
 
   const initials = (user?.email ?? "U").slice(0, 2).toUpperCase();
+
+  // Síndico: vê apenas Relatórios. Operador: tudo menos Usuários. Admin: tudo.
+  const onlyReports = isSindico && !isAdmin && !isOperador;
+  const visibleNav = onlyReports
+    ? NAV.filter((n) => n.to === "/relatorios")
+    : NAV;
+  const showQuickActions = !onlyReports;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
