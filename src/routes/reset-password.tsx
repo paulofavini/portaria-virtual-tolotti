@@ -66,6 +66,7 @@ function ResetPasswordPage() {
       toast.error("Não foi possível redefinir a senha", { description: error.message });
       return;
     }
+    toast.success("Senha atualizada com sucesso");
     setDone(true);
     // Desloga para forçar novo login com a nova senha
     await supabase.auth.signOut();
@@ -103,7 +104,7 @@ function ResetPasswordPage() {
           ) : done ? (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
               <CheckCircle2 className="h-10 w-10 text-success" />
-              <p className="text-sm text-foreground font-medium">Senha redefinida com sucesso!</p>
+              <p className="text-sm text-foreground font-medium">Senha atualizada com sucesso</p>
               <p className="text-xs text-muted-foreground">Redirecionando para o login...</p>
             </div>
           ) : (
@@ -138,7 +139,7 @@ function ResetPasswordPage() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Salvando...
                   </>
                 ) : (
-                  "Redefinir senha"
+                  "Salvar nova senha"
                 )}
               </Button>
             </form>
