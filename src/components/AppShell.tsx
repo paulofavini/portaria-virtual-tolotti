@@ -95,7 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo onDark className="w-[185px] h-auto" />
         </div>
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {NAV.map((item) => {
+          {visibleNav.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.to;
             return (
@@ -150,7 +150,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-              {NAV.map((item) => {
+              {visibleNav.map((item) => {
                 const Icon = item.icon;
                 const active = location.pathname === item.to;
                 return (
@@ -235,7 +235,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main className="flex-1 px-4 lg:px-8 py-6 max-w-7xl w-full mx-auto min-w-0">{children}</main>
 
         {/* FAB */}
-        <DropdownMenu>
+        {showQuickActions && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               size="icon"
@@ -260,7 +260,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu>}
       </div>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </div>
