@@ -160,7 +160,8 @@ function PasswordRow({
 }
 
 export function InfoOperacionalPanel({ condominio }: { condominio: CondoRow }) {
-  const { canManageOperational } = useAuth();
+  const { isAdmin } = useAuth();
+  const canManageOperational = isAdmin;
   const qc = useQueryClient();
   const condoId = condominio.id;
 
