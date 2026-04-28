@@ -16,6 +16,7 @@ interface RequestBody {
   nome_completo?: string;
   role?: AppRole;
   user_id?: string;
+  condominio_ids?: string[];
 }
 
 Deno.serve(async (req) => {
@@ -61,6 +62,10 @@ Deno.serve(async (req) => {
       const ids = users.users.map((u) => u.id);
       const { data: profiles } = await admin.from("profiles").select("*").in("id", ids);
       const { data: rolesAll } = await admin.from("user_roles").select("user_id, role").in("user_id", ids);
+      const { data: vinculos } = await admin
+        .from("usuarios_condominios")
+        .select("usuario_id, condominio_id")
+        .in("usuario_id", ids);
       const merged = users.users.map((u) => ({
         id: u.id,
         email: u.email,
@@ -68,6 +73,9 @@ Deno.serve(async (req) => {
         last_sign_in_at: u.last_sign_in_at,
         nome_completo: profiles?.find((p) => p.id === u.id)?.nome_completo ?? "",
         roles: (rolesAll ?? []).filter((r) => r.user_id === u.id).map((r) => r.role),
+        condominios: (vinculos ?? [])
+          .filter((v) => v.usuario_id === u.id)
+          .map((v) => v.condominio_id),
       }));
       return json({ users: merged });
     }
@@ -75,6 +83,9 @@ Deno.serve(async (req) => {
     if (body.action === "create") {
       if (!body.email || !body.password || !body.role) {
         return json({ error: "email, password e role obrigatórios" }, 400);
+      }
+      if (body.role === "sindico" && (!body.condominio_ids || body.condominio_ids.length === 0)) {
+        return json({ error: "Síndico deve ter pelo menos 1 condomínio vinculado" }, 400);
       }
       const { data: created, error: createErr } = await admin.auth.admin.createUser({
         email: body.email,
@@ -90,14 +101,31 @@ Deno.serve(async (req) => {
       if (body.nome_completo) {
         await admin.from("profiles").update({ nome_completo: body.nome_completo }).eq("id", newId);
       }
+      // Vínculos de condomínio (aplicável só ao síndico)
+      await admin.from("usuarios_condominios").delete().eq("usuario_id", newId);
+      if (body.role === "sindico" && body.condominio_ids?.length) {
+        await admin.from("usuarios_condominios").insert(
+          body.condominio_ids.map((cid) => ({ usuario_id: newId, condominio_id: cid })),
+        );
+      }
       return json({ ok: true, id: newId });
     }
 
     if (body.action === "update") {
       if (!body.user_id) return json({ error: "user_id obrigatório" }, 400);
+      if (body.role === "sindico" && (!body.condominio_ids || body.condominio_ids.length === 0)) {
+        return json({ error: "Síndico deve ter pelo menos 1 condomínio vinculado" }, 400);
+      }
       if (body.role) {
         await admin.from("user_roles").delete().eq("user_id", body.user_id);
         await admin.from("user_roles").insert({ user_id: body.user_id, role: body.role });
+        // Refaz vínculos: síndico recebe lista; demais perfis ficam sem vínculos
+        await admin.from("usuarios_condominios").delete().eq("usuario_id", body.user_id);
+        if (body.role === "sindico" && body.condominio_ids?.length) {
+          await admin.from("usuarios_condominios").insert(
+            body.condominio_ids.map((cid) => ({ usuario_id: body.user_id, condominio_id: cid })),
+          );
+        }
       }
       if (body.nome_completo !== undefined) {
         await admin.from("profiles").update({ nome_completo: body.nome_completo }).eq("id", body.user_id);
@@ -116,6 +144,7 @@ Deno.serve(async (req) => {
       if (body.user_id === userData.user.id) {
         return json({ error: "Você não pode remover seu próprio usuário" }, 400);
       }
+      await admin.from("usuarios_condominios").delete().eq("usuario_id", body.user_id);
       await admin.from("user_roles").delete().eq("user_id", body.user_id);
       await admin.from("profiles").delete().eq("id", body.user_id);
       const { error: delErr } = await admin.auth.admin.deleteUser(body.user_id);
