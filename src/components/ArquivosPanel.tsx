@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -564,16 +564,12 @@ function EditArquivoDialog({
   const [descricao, setDescricao] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useState(() => undefined);
-
-  // Sync form when arquivo changes
-  if (arquivo && nome === "" && descricao === "") {
-    // no-op; initial sync happens below via effect-like pattern
-  }
-
-  // Use a real effect so form resets when dialog opens with a new file
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffectSync(arquivo, setNome, setDescricao);
+  useEffect(() => {
+    if (arquivo) {
+      setNome(arquivo.nome ?? "");
+      setDescricao(arquivo.descricao ?? "");
+    }
+  }, [arquivo?.id]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -646,16 +642,3 @@ function EditArquivoDialog({
   );
 }
 
-function useEffectSync(
-  arquivo: Arquivo | null,
-  setNome: (v: string) => void,
-  setDescricao: (v: string) => void,
-) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffectImport(() => {
-    if (arquivo) {
-      setNome(arquivo.nome ?? "");
-      setDescricao(arquivo.descricao ?? "");
-    }
-  }, [arquivo?.id]);
-}
