@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -10,6 +10,7 @@ import {
   FileImage,
   File as FileIcon,
   Upload,
+  Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -88,11 +89,12 @@ async function getSignedUrl(path: string) {
 }
 
 export function ArquivosPanel({ condominioId }: { condominioId: string }) {
-  const { canManageOperational, user } = useAuth();
+  const { canManageOperational, isAdmin, user } = useAuth();
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [preview, setPreview] = useState<{ arquivo: Arquivo; url: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Arquivo | null>(null);
+  const [editing, setEditing] = useState<Arquivo | null>(null);
 
   const { data: arquivos, isLoading } = useQuery({
     queryKey: ["arquivos", condominioId],
@@ -255,6 +257,16 @@ export function ArquivosPanel({ condominioId }: { condominioId: string }) {
                     <Button
                       size="icon"
                       variant="ghost"
+                      onClick={() => setEditing(arq)}
+                      aria-label="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       className="text-destructive hover:text-destructive"
                       onClick={() => setConfirmDelete(arq)}
                       aria-label="Excluir"
@@ -274,6 +286,15 @@ export function ArquivosPanel({ condominioId }: { condominioId: string }) {
         onOpenChange={setUploadOpen}
         condominioId={condominioId}
         onSuccess={() => qc.invalidateQueries({ queryKey: ["arquivos", condominioId] })}
+      />
+
+      <EditArquivoDialog
+        arquivo={editing}
+        onClose={() => setEditing(null)}
+        onSuccess={() => {
+          setEditing(null);
+          qc.invalidateQueries({ queryKey: ["arquivos", condominioId] });
+        }}
       />
 
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
@@ -529,3 +550,95 @@ function UploadDialog({
     </Dialog>
   );
 }
+
+function EditArquivoDialog({
+  arquivo,
+  onClose,
+  onSuccess,
+}: {
+  arquivo: Arquivo | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (arquivo) {
+      setNome(arquivo.nome ?? "");
+      setDescricao(arquivo.descricao ?? "");
+    }
+  }, [arquivo?.id]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!arquivo) return;
+    if (!descricao.trim()) {
+      toast.error("A descrição é obrigatória");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("arquivos")
+        .update({ nome: nome.trim() || arquivo.nome, descricao: descricao.trim() })
+        .eq("id", arquivo.id);
+      if (error) throw error;
+      toast.success("Arquivo atualizado");
+      onSuccess();
+    } catch (err) {
+      toast.error("Erro ao salvar", { description: (err as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!arquivo} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <form onSubmit={handleSave} className="space-y-4">
+          <DialogHeader>
+            <DialogTitle>Editar arquivo</DialogTitle>
+            <DialogDescription>
+              Atualize o nome e a descrição do arquivo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="arq-edit-nome">Nome</Label>
+            <Input
+              id="arq-edit-nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Nome do arquivo"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="arq-edit-desc">
+              Descrição <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="arq-edit-desc"
+              required
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

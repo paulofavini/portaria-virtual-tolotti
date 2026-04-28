@@ -77,7 +77,7 @@ function reportError(scope: string, error: unknown) {
 
 export function MoradoresManager({ condominioId }: { condominioId: string }) {
   const qc = useQueryClient();
-  const { canManageOperational } = useAuth();
+  const { isAdmin } = useAuth();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<MoradorWithRel | "new" | null>(null);
   const [removing, setRemoving] = useState<MoradorWithRel | null>(null);
@@ -142,7 +142,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h3 className="text-base font-semibold text-foreground">Moradores</h3>
-        {canManageOperational && (
+        {isAdmin && (
           <Button size="sm" onClick={() => setEditing("new")}>
             <Plus className="h-4 w-4 mr-1" /> Novo morador
           </Button>
@@ -228,7 +228,7 @@ export function MoradoresManager({ condominioId }: { condominioId: string }) {
                     </div>
                   )}
                 </div>
-                {canManageOperational && (
+                {isAdmin && (
                   <div className="flex gap-1">
                     <Button size="icon" variant="ghost" onClick={() => setEditing(m)}>
                       <Pencil className="h-4 w-4" />
