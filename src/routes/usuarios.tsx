@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { useCondominios } from "@/lib/queries";
 import { Plus, Pencil, Trash2, Users as UsersIcon, ShieldCheck, ShieldAlert, User } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ interface AdminUser {
   roles: AppRole[];
   created_at: string;
   last_sign_in_at: string | null;
+  condominios?: string[];
 }
 
 export const Route = createFileRoute("/usuarios")({
