@@ -6,6 +6,7 @@ import { PageHeader, EmptyState } from "@/components/PageHeader";
 import { MoradoresManager } from "@/components/MoradoresManager";
 import { OcorrenciasPanel } from "@/components/OcorrenciasPanel";
 import { InfoOperacionalPanel } from "@/components/InfoOperacionalPanel";
+import { ArquivosPanel } from "@/components/ArquivosPanel";
 import { formatEndereco } from "@/lib/address";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,6 +65,7 @@ function CondoDetailPage() {
             <TabsList>
               <TabsTrigger value="geral">Dados Gerais</TabsTrigger>
               <TabsTrigger value="operacional">Informações Operacionais</TabsTrigger>
+              <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
             </TabsList>
 
             <TabsContent value="geral" className="mt-4 space-y-6">
@@ -95,6 +97,10 @@ function CondoDetailPage() {
 
             <TabsContent value="operacional" className="mt-4">
               <InfoOperacionalPanel condominio={data} />
+            </TabsContent>
+
+            <TabsContent value="arquivos" className="mt-4">
+              <ArquivosPanel condominioId={data.id} />
             </TabsContent>
           </Tabs>
         </>
