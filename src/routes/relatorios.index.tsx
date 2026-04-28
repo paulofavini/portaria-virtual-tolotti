@@ -538,21 +538,32 @@ function CadastralSection() {
 }
 
 function useCadastralQuery(type: CadastralKey) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSindico, isOperador, user } = useAuth();
+  const onlySindico = isSindico && !isAdmin && !isOperador;
+  const { data: vinculados } = useUsuarioCondominios(onlySindico ? user?.id : undefined);
   return useQuery({
-    queryKey: ["report", "cad", type],
+    queryKey: ["report", "cad", type, onlySindico ? (vinculados ?? []).join(",") : "all"],
     queryFn: async () => {
       if (type === "condominios") {
-        const { data, error } = await supabase.from("condominios").select("*").order("nome");
+        let q = supabase.from("condominios").select("*").order("nome");
+        if (onlySindico) q = q.in("id", vinculados ?? []);
+        const { data, error } = await q;
         if (error) throw error;
+        if (onlySindico && !(vinculados ?? []).length) return [];
         return data;
       }
       if (type === "moradores") {
         const { data, error } = await supabase
           .from("moradores")
-          .select("*, unidades(numero, blocos(nome, condominios(nome)))")
+          .select("*, unidades(numero, blocos(nome, condominio_id, condominios(nome)))")
           .order("nome");
         if (error) throw error;
+        if (onlySindico) {
+          const allowed = new Set(vinculados ?? []);
+          return (data ?? []).filter(
+            (m: any) => m.unidades?.blocos?.condominio_id && allowed.has(m.unidades.blocos.condominio_id),
+          );
+        }
         return data;
       }
       if (type === "usuarios") {
