@@ -61,8 +61,14 @@ function LoginPage() {
           <Logo onDark className="h-24 w-auto drop-shadow-md" />
         </div>
         <div
-          className="bg-card rounded-2xl p-7 sm:p-9 animate-fade-in shadow-lg"
-          style={{ animationDuration: "400ms", animationDelay: "80ms", animationFillMode: "both" }}
+          className="bg-card rounded-2xl p-7 sm:p-9 animate-fade-in border border-white/10 backdrop-blur-sm"
+          style={{
+            animationDuration: "400ms",
+            animationDelay: "80ms",
+            animationFillMode: "both",
+            boxShadow:
+              "0 20px 50px -12px rgba(5, 20, 50, 0.45), 0 8px 20px -8px rgba(5, 20, 50, 0.35)",
+          }}
         >
           <h2 className="text-lg font-semibold text-foreground mb-1">Acessar sistema</h2>
           <p className="text-sm text-muted-foreground mb-6">Entre com suas credenciais corporativas.</p>
