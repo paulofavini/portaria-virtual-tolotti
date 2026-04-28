@@ -66,13 +66,14 @@ async function callAdminFn<T = unknown>(body: Record<string, unknown>): Promise<
 }
 
 function UsuariosPage() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [deleting, setDeleting] = useState<AdminUser | null>(null);
+  const [resettingId, setResettingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -99,6 +100,30 @@ function UsuariosPage() {
 
   if (!isAdmin) return null;
 
+  const handleResetSenha = async (u: AdminUser) => {
+    if (!u.email) {
+      toast.error("Usuário sem e-mail cadastrado");
+      return;
+    }
+    setResettingId(u.id);
+    try {
+      await callAdminFn({
+        action: "reset_password",
+        user_id: u.id,
+        redirect_to: `${window.location.origin}/reset-password`,
+      });
+      toast.success("Email de redefinição enviado com sucesso", {
+        description: `Enviado para ${u.email}. O link expira em 1 hora.`,
+      });
+    } catch (e) {
+      toast.error("Não foi possível enviar o email", {
+        description: e instanceof Error ? e.message : "Tente novamente em instantes.",
+      });
+    } finally {
+      setResettingId(null);
+    }
+  };
+
   return (
     <div className="pb-24">
       <PageHeader
@@ -117,7 +142,10 @@ function UsuariosPage() {
         <EmptyState title="Nenhum usuário" description="Cadastre o primeiro usuário do sistema." />
       ) : (
         <div className="space-y-2">
-          {users.map((u) => (
+          {users.map((u) => {
+            const isSelf = u.id === currentUser?.id;
+            const resetting = resettingId === u.id;
+            return (
             <div
               key={u.id}
               className="bg-card rounded-xl border border-border p-4 flex items-center gap-3"
@@ -142,6 +170,21 @@ function UsuariosPage() {
                 </div>
               </div>
               <div className="flex gap-1">
+                {!isSelf && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleResetSenha(u)}
+                    disabled={resetting}
+                    title="Resetar senha (enviar email)"
+                  >
+                    {resetting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <KeyRound className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
                 <Button size="icon" variant="ghost" onClick={() => setEditing(u)} title="Editar">
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -156,7 +199,8 @@ function UsuariosPage() {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
