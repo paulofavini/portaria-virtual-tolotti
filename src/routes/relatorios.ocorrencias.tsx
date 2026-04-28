@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useCondominios, useOcorrencias } from "@/lib/queries";
 import { useAuth } from "@/lib/auth-context";
+import { useUsuarioCondominios } from "@/lib/queries";
 
 export const Route = createFileRoute("/relatorios/ocorrencias")({
   component: () => (
@@ -96,14 +97,19 @@ function SummaryCard({
 }
 
 function RelatorioOcorrenciasPage() {
-  const { isAdmin, roles, loading: authLoading } = useAuth();
+  const { isAdmin, roles, loading: authLoading, user } = useAuth();
   const isSindico = roles.includes("sindico");
   const isOperador = roles.includes("operador");
   const canView = isAdmin || isSindico || isOperador;
   const canExport = isAdmin || isSindico;
+  const onlySindico = isSindico && !isAdmin && !isOperador;
+  const { data: vinculados } = useUsuarioCondominios(onlySindico ? user?.id : undefined);
 
   const { data: ocorrencias, isLoading } = useOcorrencias();
-  const { data: condominios } = useCondominios();
+  const { data: allCondominios } = useCondominios();
+  const condominios = onlySindico
+    ? (allCondominios ?? []).filter((c) => (vinculados ?? []).includes(c.id))
+    : allCondominios;
 
   const [dataInicio, setDataInicio] = useState<string>("");
   const [dataFim, setDataFim] = useState<string>("");
@@ -115,9 +121,11 @@ function RelatorioOcorrenciasPage() {
     if (!ocorrencias) return [];
     const inicio = dataInicio ? new Date(`${dataInicio}T00:00:00`) : null;
     const fim = dataFim ? new Date(`${dataFim}T23:59:59.999`) : null;
+    const allowedIds = onlySindico ? new Set(vinculados ?? []) : null;
 
     return ocorrencias
       .filter((o) => {
+        if (allowedIds && !allowedIds.has(o.condominio_id)) return false;
         const dt = new Date(o.data_hora);
         if (inicio && dt < inicio) return false;
         if (fim && dt > fim) return false;
@@ -127,7 +135,7 @@ function RelatorioOcorrenciasPage() {
         return true;
       })
       .sort((a, b) => new Date(b.data_hora).getTime() - new Date(a.data_hora).getTime());
-  }, [ocorrencias, dataInicio, dataFim, condominioId, tipoFiltro, statusFiltro]);
+  }, [ocorrencias, dataInicio, dataFim, condominioId, tipoFiltro, statusFiltro, onlySindico, vinculados]);
 
   const resumo = useMemo(() => {
     const porTipo: Record<string, number> = {
