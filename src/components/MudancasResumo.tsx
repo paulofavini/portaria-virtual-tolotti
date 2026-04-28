@@ -67,7 +67,7 @@ export function MudancasResumo() {
             </span>
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link to="/mudancas">Ver tudo</Link>
+            <Link to="/mudancas" search={{ periodo: undefined }}>Ver tudo</Link>
           </Button>
         </div>
 
