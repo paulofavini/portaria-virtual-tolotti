@@ -80,21 +80,23 @@ function LoginPage() {
           <Logo onDark className="h-24 w-auto drop-shadow-md" />
         </div>
         <div
-          className="rounded-2xl p-7 sm:p-9 animate-fade-in border border-white/30 backdrop-blur-md"
+          className="rounded-2xl p-7 sm:p-9 animate-fade-in border backdrop-blur-[14px]"
           style={{
             animationDuration: "400ms",
             animationDelay: "80ms",
             animationFillMode: "both",
-            background: "rgba(255, 255, 255, 0.85)",
+            background: "rgba(255, 255, 255, 0.12)",
+            WebkitBackdropFilter: "blur(14px)",
+            borderColor: "rgba(255, 255, 255, 0.22)",
             boxShadow:
-              "0 20px 50px -12px rgba(5, 20, 50, 0.45), 0 8px 20px -8px rgba(5, 20, 50, 0.35)",
+              "0 8px 32px rgba(0, 0, 0, 0.28), inset 0 0 1px rgba(255, 255, 255, 0.35)",
           }}
         >
-          <h2 className="text-lg font-semibold text-foreground mb-1">Acessar sistema</h2>
-          <p className="text-sm text-muted-foreground mb-6">Entre com suas credenciais corporativas.</p>
+          <h2 className="text-lg font-semibold text-white mb-1 drop-shadow-sm">Acessar sistema</h2>
+          <p className="text-sm text-white/75 mb-6">Entre com suas credenciais corporativas.</p>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
+              <Label htmlFor="email" className="text-white/90">E-mail</Label>
               <Input
                 id="email"
                 ref={emailRef}
@@ -103,16 +105,16 @@ function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="transition-all duration-200 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 transition-all duration-200 focus-visible:bg-white/15 focus-visible:border-white/40 focus-visible:ring-2 focus-visible:ring-sky-400/40"
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="text-white/90">Senha</Label>
                 <button
                   type="button"
                   onClick={() => setForgotOpen(true)}
-                  className="text-xs font-medium text-primary hover:underline focus:outline-none focus-visible:underline"
+                  className="text-xs font-medium text-white/85 hover:text-white hover:underline focus:outline-none focus-visible:underline"
                 >
                   Esqueci minha senha
                 </button>
@@ -124,12 +126,12 @@ function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="transition-all duration-200 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="h-11 bg-white/10 border-white/20 text-white placeholder:text-white/50 transition-all duration-200 focus-visible:bg-white/15 focus-visible:border-white/40 focus-visible:ring-2 focus-visible:ring-sky-400/40"
               />
             </div>
             <Button
               type="submit"
-              className="w-full h-11 transition-transform duration-150 active:scale-[0.98] disabled:opacity-80"
+              className="w-full h-11 shadow-lg shadow-primary/30 transition-all duration-200 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] disabled:opacity-80"
               disabled={loading}
             >
               {loading ? (
@@ -142,7 +144,7 @@ function LoginPage() {
               )}
             </Button>
           </form>
-          <p className="text-xs text-muted-foreground mt-6 text-center">
+          <p className="text-xs text-white/65 mt-6 text-center">
             O acesso é criado pelo administrador do sistema.
           </p>
         </div>
