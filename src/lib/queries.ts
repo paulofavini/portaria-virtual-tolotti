@@ -14,6 +14,21 @@ export const useCondominios = () =>
     },
   });
 
+/** IDs dos condomínios vinculados ao usuário autenticado (ex.: síndico). */
+export const useUsuarioCondominios = (userId?: string) =>
+  useQuery({
+    queryKey: ["usuarios_condominios", userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("usuarios_condominios")
+        .select("condominio_id")
+        .eq("usuario_id", userId!);
+      if (error) throw error;
+      return (data ?? []).map((r) => r.condominio_id as string);
+    },
+  });
+
 export const useBlocos = (condominioId?: string) =>
   useQuery({
     queryKey: ["blocos", condominioId],

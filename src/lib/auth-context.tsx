@@ -11,6 +11,7 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   isOperador: boolean;
+  isSindico: boolean;
   canManageOperational: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -61,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = roles.includes("admin");
   const isOperador = roles.includes("operador");
+  const isSindico = roles.includes("sindico");
 
   return (
     <AuthContext.Provider
@@ -71,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         isAdmin,
         isOperador,
+        isSindico,
         canManageOperational: isAdmin || isOperador,
         signIn,
         signOut,

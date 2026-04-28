@@ -1171,6 +1171,27 @@ export type Database = {
         }
         Relationships: []
       }
+      usuarios_condominios: {
+        Row: {
+          condominio_id: string
+          created_at: string
+          id: string
+          usuario_id: string
+        }
+        Insert: {
+          condominio_id: string
+          created_at?: string
+          id?: string
+          usuario_id: string
+        }
+        Update: {
+          condominio_id?: string
+          created_at?: string
+          id?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       veiculos: {
         Row: {
           cor: string | null
@@ -1222,6 +1243,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      user_has_condominio: {
+        Args: { _condominio_id: string; _user_id: string }
         Returns: boolean
       }
     }
