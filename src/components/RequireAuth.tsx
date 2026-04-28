@@ -1,17 +1,25 @@
 import { useEffect, type ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { AppShell } from "./AppShell";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { user, loading } = useAuth();
+  const { user, loading, isSindico, isAdmin, isOperador } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading && !user) {
       navigate({ to: "/login" });
+      return;
     }
-  }, [loading, user, navigate]);
+    // Síndico só pode ficar em /relatorios*
+    if (!loading && user && isSindico && !isAdmin && !isOperador) {
+      if (!location.pathname.startsWith("/relatorios")) {
+        navigate({ to: "/relatorios" });
+      }
+    }
+  }, [loading, user, isSindico, isAdmin, isOperador, location.pathname, navigate]);
 
   if (loading || !user) {
     return (
