@@ -62,7 +62,7 @@ function LoginPage() {
         className="absolute inset-0 -z-20 bg-cover bg-center"
         style={{
           backgroundImage: `url(${loginBg})`,
-          filter: "blur(3px)",
+          filter: "blur(4px)",
           transform: "scale(1.05)",
         }}
       />
@@ -72,7 +72,7 @@ function LoginPage() {
         className="absolute inset-0 -z-10"
         style={{
           background:
-            "linear-gradient(135deg, rgba(10, 37, 64, 0.82) 0%, rgba(13, 71, 161, 0.72) 55%, rgba(21, 101, 192, 0.68) 100%)",
+            "linear-gradient(135deg, rgba(10, 37, 64, 0.72) 0%, rgba(13, 71, 161, 0.66) 55%, rgba(21, 101, 192, 0.62) 100%)",
         }}
       />
       <div className="w-full max-w-md pt-12 pb-6">
@@ -80,11 +80,12 @@ function LoginPage() {
           <Logo onDark className="h-24 w-auto drop-shadow-md" />
         </div>
         <div
-          className="bg-card rounded-2xl p-7 sm:p-9 animate-fade-in border border-white/10 backdrop-blur-sm"
+          className="rounded-2xl p-7 sm:p-9 animate-fade-in border border-white/30 backdrop-blur-md"
           style={{
             animationDuration: "400ms",
             animationDelay: "80ms",
             animationFillMode: "both",
+            background: "rgba(255, 255, 255, 0.85)",
             boxShadow:
               "0 20px 50px -12px rgba(5, 20, 50, 0.45), 0 8px 20px -8px rgba(5, 20, 50, 0.35)",
           }}
