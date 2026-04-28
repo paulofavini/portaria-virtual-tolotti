@@ -54,7 +54,7 @@ function LoginPage() {
 
   return (
     <div
-      className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden"
+      className="relative h-screen flex items-center justify-center px-4 overflow-hidden"
     >
       {/* Imagem de fundo com leve blur */}
       <div
@@ -75,12 +75,12 @@ function LoginPage() {
             "linear-gradient(135deg, rgba(10, 37, 64, 0.72) 0%, rgba(13, 71, 161, 0.66) 55%, rgba(21, 101, 192, 0.62) 100%)",
         }}
       />
-      <div className="w-full max-w-md pt-12 pb-6">
-        <div className="flex justify-center mb-6 animate-fade-in" style={{ animationDuration: "400ms" }}>
-          <Logo onDark className="h-24 w-auto drop-shadow-md" />
+      <div className="w-full max-w-md flex flex-col items-center justify-center py-4 max-h-screen">
+        <div className="flex justify-center mb-4 animate-fade-in" style={{ animationDuration: "400ms" }}>
+          <Logo onDark className="h-20 w-auto drop-shadow-md" />
         </div>
         <div
-          className="rounded-2xl p-7 sm:p-9 animate-fade-in border backdrop-blur-[14px]"
+          className="w-full rounded-2xl p-6 sm:p-7 animate-fade-in border backdrop-blur-[14px]"
           style={{
             animationDuration: "400ms",
             animationDelay: "80ms",
@@ -93,8 +93,8 @@ function LoginPage() {
           }}
         >
           <h2 className="text-lg font-semibold text-white mb-1 drop-shadow-sm">Acessar sistema</h2>
-          <p className="text-sm text-white/75 mb-6">Entre com suas credenciais corporativas.</p>
-          <form onSubmit={onSubmit} className="space-y-4">
+          <p className="text-sm text-white/75 mb-5">Entre com suas credenciais corporativas.</p>
+          <form onSubmit={onSubmit} className="space-y-3.5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white/90">E-mail</Label>
               <Input
@@ -144,14 +144,17 @@ function LoginPage() {
               )}
             </Button>
           </form>
-          <p className="text-xs text-white/65 mt-6 text-center">
+          <p className="text-xs text-white/65 mt-5 text-center">
             O acesso é criado pelo administrador do sistema.
           </p>
         </div>
         <div
-          className="bg-white rounded-2xl mt-6 px-6 py-4 flex items-center justify-center w-fit mx-auto animate-fade-in"
+          className="rounded-2xl mt-4 px-6 py-3 flex items-center justify-center w-fit mx-auto animate-fade-in border backdrop-blur-md"
           style={{
-            boxShadow: "var(--shadow-elevated)",
+            background: "rgba(255, 255, 255, 0.18)",
+            borderColor: "rgba(255, 255, 255, 0.22)",
+            WebkitBackdropFilter: "blur(8px)",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
             animationDuration: "400ms",
             animationDelay: "160ms",
             animationFillMode: "both",
@@ -160,7 +163,7 @@ function LoginPage() {
           <img
             src={logo18Anos}
             alt="Grupo Tolotti — 18 anos"
-            className="max-h-16 w-auto object-contain"
+            className="max-h-14 w-auto object-contain drop-shadow-md"
             draggable={false}
           />
         </div>
