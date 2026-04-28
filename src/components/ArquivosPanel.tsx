@@ -550,3 +550,112 @@ function UploadDialog({
     </Dialog>
   );
 }
+
+function EditArquivoDialog({
+  arquivo,
+  onClose,
+  onSuccess,
+}: {
+  arquivo: Arquivo | null;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [nome, setNome] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useState(() => undefined);
+
+  // Sync form when arquivo changes
+  if (arquivo && nome === "" && descricao === "") {
+    // no-op; initial sync happens below via effect-like pattern
+  }
+
+  // Use a real effect so form resets when dialog opens with a new file
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffectSync(arquivo, setNome, setDescricao);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!arquivo) return;
+    if (!descricao.trim()) {
+      toast.error("A descrição é obrigatória");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("arquivos")
+        .update({ nome: nome.trim() || arquivo.nome, descricao: descricao.trim() })
+        .eq("id", arquivo.id);
+      if (error) throw error;
+      toast.success("Arquivo atualizado");
+      onSuccess();
+    } catch (err) {
+      toast.error("Erro ao salvar", { description: (err as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!arquivo} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <form onSubmit={handleSave} className="space-y-4">
+          <DialogHeader>
+            <DialogTitle>Editar arquivo</DialogTitle>
+            <DialogDescription>
+              Atualize o nome e a descrição do arquivo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="arq-edit-nome">Nome</Label>
+            <Input
+              id="arq-edit-nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Nome do arquivo"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="arq-edit-desc">
+              Descrição <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="arq-edit-desc"
+              required
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function useEffectSync(
+  arquivo: Arquivo | null,
+  setNome: (v: string) => void,
+  setDescricao: (v: string) => void,
+) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffectImport(() => {
+    if (arquivo) {
+      setNome(arquivo.nome ?? "");
+      setDescricao(arquivo.descricao ?? "");
+    }
+  }, [arquivo?.id]);
+}
