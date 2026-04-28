@@ -33,7 +33,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { useCondominios } from "@/lib/queries";
-import { Plus, Pencil, Trash2, Users as UsersIcon, ShieldCheck, ShieldAlert, User } from "lucide-react";
+import { Plus, Pencil, Trash2, Users as UsersIcon, ShieldCheck, ShieldAlert, User, KeyRound, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 type AppRole = "admin" | "operador" | "sindico";
@@ -356,6 +356,9 @@ function EditUserDialog({
   const [password, setPassword] = useState("");
   const [condominioIds, setCondominioIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetBusy, setResetBusy] = useState<"send" | "copy" | null>(null);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const { data: condominios } = useCondominios();
 
   useEffect(() => {
@@ -364,6 +367,7 @@ function EditUserDialog({
       setRole((user.roles[0] as AppRole) ?? "operador");
       setPassword("");
       setCondominioIds(user.condominios ?? []);
+      setGeneratedLink(null);
     }
   }, [user]);
 
@@ -389,6 +393,56 @@ function EditUserDialog({
       toast.error(e instanceof Error ? e.message : "Erro ao atualizar");
     } finally {
       setBusy(false);
+    }
+  };
+
+  const redirectTo = typeof window !== "undefined"
+    ? `${window.location.origin}/reset-password`
+    : undefined;
+
+  const sendResetEmail = async () => {
+    if (!user) return;
+    setResetBusy("send");
+    try {
+      await callAdminFn({
+        action: "reset_password",
+        user_id: user.id,
+        redirect_to: redirectTo,
+      });
+      toast.success("E-mail de redefinição enviado", {
+        description: `Enviado para ${user.email}. O link expira em 1 hora.`,
+      });
+      setConfirmReset(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao enviar e-mail");
+    } finally {
+      setResetBusy(null);
+    }
+  };
+
+  const generateLink = async () => {
+    if (!user) return;
+    setResetBusy("copy");
+    try {
+      const res = await callAdminFn<{ action_link: string }>({
+        action: "generate_reset_link",
+        user_id: user.id,
+        redirect_to: redirectTo,
+      });
+      if (!res.action_link) throw new Error("Link não retornado");
+      setGeneratedLink(res.action_link);
+      try {
+        await navigator.clipboard.writeText(res.action_link);
+        toast.success("Link copiado para a área de transferência", {
+          description: "Válido por 1 hora e uso único.",
+        });
+      } catch {
+        toast.success("Link gerado", { description: "Copie manualmente abaixo." });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar link");
+    } finally {
+      setResetBusy(null);
     }
   };
 
@@ -430,6 +484,69 @@ function EditUserDialog({
           <div>
             <Label>Nova senha (opcional)</Label>
             <Input type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Deixe em branco para manter" />
+          </div>
+
+          <div className="border-t border-border pt-3">
+            <Label className="text-xs text-muted-foreground uppercase tracking-wide">
+              Redefinição de senha
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1 mb-2">
+              Envie um link seguro para o usuário criar a própria senha. Token expira em 1 hora e só pode ser usado uma vez.
+            </p>
+            {!confirmReset ? (
+              <Button type="button" variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
+                <KeyRound className="h-4 w-4 mr-1" /> Resetar senha
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={sendResetEmail}
+                    disabled={resetBusy !== null}
+                  >
+                    {resetBusy === "send" ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <KeyRound className="h-4 w-4 mr-1" />
+                    )}
+                    Enviar e-mail
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={generateLink}
+                    disabled={resetBusy !== null}
+                  >
+                    {resetBusy === "copy" ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Copy className="h-4 w-4 mr-1" />
+                    )}
+                    Copiar link
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setConfirmReset(false);
+                      setGeneratedLink(null);
+                    }}
+                    disabled={resetBusy !== null}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+                {generatedLink && (
+                  <div className="text-xs bg-muted rounded-md p-2 break-all font-mono">
+                    {generatedLink}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>

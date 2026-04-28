@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UsuariosRouteImport } from './routes/usuarios'
 import { Route as SolicitacoesRouteImport } from './routes/solicitacoes'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as OcorrenciasRouteImport } from './routes/ocorrencias'
 import { Route as MudancasRouteImport } from './routes/mudancas'
 import { Route as MoradoresRouteImport } from './routes/moradores'
@@ -43,6 +44,11 @@ const UsuariosRoute = UsuariosRouteImport.update({
 const SolicitacoesRoute = SolicitacoesRouteImport.update({
   id: '/solicitacoes',
   path: '/solicitacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OcorrenciasRoute = OcorrenciasRouteImport.update({
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/moradores': typeof MoradoresRoute
   '/mudancas': typeof MudancasRouteWithChildren
   '/ocorrencias': typeof OcorrenciasRouteWithChildren
+  '/reset-password': typeof ResetPasswordRoute
   '/solicitacoes': typeof SolicitacoesRoute
   '/usuarios': typeof UsuariosRoute
   '/avisos/novo': typeof AvisosNovoRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/reset-password'
     | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/reset-password'
     | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/moradores'
     | '/mudancas'
     | '/ocorrencias'
+    | '/reset-password'
     | '/solicitacoes'
     | '/usuarios'
     | '/avisos/novo'
@@ -335,6 +347,7 @@ export interface RootRouteChildren {
   MoradoresRoute: typeof MoradoresRoute
   MudancasRoute: typeof MudancasRouteWithChildren
   OcorrenciasRoute: typeof OcorrenciasRouteWithChildren
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SolicitacoesRoute: typeof SolicitacoesRoute
   UsuariosRoute: typeof UsuariosRoute
   RelatoriosOcorrenciasRoute: typeof RelatoriosOcorrenciasRoute
@@ -355,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/solicitacoes'
       fullPath: '/solicitacoes'
       preLoaderRoute: typeof SolicitacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ocorrencias': {
@@ -621,6 +641,7 @@ const rootRouteChildren: RootRouteChildren = {
   MoradoresRoute: MoradoresRoute,
   MudancasRoute: MudancasRouteWithChildren,
   OcorrenciasRoute: OcorrenciasRouteWithChildren,
+  ResetPasswordRoute: ResetPasswordRoute,
   SolicitacoesRoute: SolicitacoesRoute,
   UsuariosRoute: UsuariosRoute,
   RelatoriosOcorrenciasRoute: RelatoriosOcorrenciasRoute,
